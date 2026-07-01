@@ -57,6 +57,27 @@ body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--body);f
 .cmp-legend i.dB{border-top-color:var(--cmpB);border-top-style:dashed;}
 .tb-hint{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-left:auto;}
 
+/* preset compare strip */
+.preset-strip{display:none;padding:8px 18px;background:var(--surf1);border-bottom:1px solid var(--border);gap:8px;align-items:center;flex-wrap:wrap;flex-shrink:0;}
+.preset-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;margin-right:4px;}
+.preset-chip{position:relative;display:inline-flex;flex-direction:column;gap:1px;font-family:var(--body);padding:6px 12px;border:1px solid var(--border2);border-radius:5px;background:var(--surf2);color:var(--txt2);cursor:pointer;transition:all .13s;min-width:118px;}
+.preset-chip:hover{border-color:var(--accent);color:var(--txt);}
+.preset-chip .pc-name{font-size:12.5px;font-weight:600;letter-spacing:.02em;}
+.preset-chip .pc-sub{font-family:var(--mono);font-size:8.5px;color:var(--txt3);}
+.preset-chip.selA{border-color:var(--cmpA);background:var(--accentD);color:var(--txt);}
+.preset-chip.selB{border-color:var(--cmpB);background:rgba(0,114,178,.14);color:var(--txt);}
+.preset-chip .pc-slot{position:absolute;top:-8px;right:-8px;width:18px;height:18px;border-radius:50%;font-family:var(--mono);font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;}
+.preset-chip.selA .pc-slot{display:flex;background:var(--cmpA);color:#0b0d12;}
+.preset-chip.selB .pc-slot{display:flex;background:var(--cmpB);color:#fff;}
+.preset-hint{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-left:6px;}
+
+/* footprint overlap dial + delta badge */
+.fp-ctrl{display:none;align-items:center;gap:9px;padding:6px 4px 2px;flex-shrink:0;}
+.fp-ctrl-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--txt2);white-space:nowrap;}
+.fp-ctrl input[type=range]{flex:1;height:4px;}
+.fp-ctrl-val{font-family:var(--mono);font-size:10px;color:var(--accent);min-width:34px;text-align:right;}
+.fp-delta{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;border:1px solid var(--border2);white-space:nowrap;}
+
 /* compare summary strip */
 .cmp-summary{display:none;font-family:var(--mono);font-size:10px;padding:5px 18px;background:var(--surf1);border-bottom:1px solid var(--border);color:var(--txt2);gap:16px;align-items:center;flex-wrap:wrap;flex-shrink:0;}
 .cmp-summary b{font-weight:700;}
@@ -109,14 +130,14 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .cg{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
 .cb{background:var(--surf2);border:1px solid var(--border);border-radius:3px;padding:6px 8px;}
 .cb-n{font-family:var(--mono);font-size:8.5px;color:var(--txt3);letter-spacing:.05em;text-transform:uppercase;}
-.cb-v{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--sec);}
+.cb-v{font-family:var(--mono);font-size:13px;font-weight:400;color:var(--sec);}
 .cb-v.g{color:var(--accent);}
 
 /* stats */
 .sg{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
 .st{background:var(--surf2);border:1px solid var(--border);border-radius:3px;padding:5px 7px;}
 .st-l{font-family:var(--mono);font-size:8.5px;color:var(--txt3);letter-spacing:.05em;text-transform:uppercase;}
-.st-v{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--txt);}
+.st-v{font-family:var(--mono);font-size:13px;font-weight:400;color:var(--txt);}
 
 /* formula */
 .fml{background:var(--surf2);border:1px solid var(--border);border-radius:3px;padding:8px 9px;font-family:var(--mono);font-size:9.5px;color:var(--txt2);line-height:1.65;}
@@ -150,6 +171,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   .tb-hint{display:none;}
   .switch-lbl,.tb-btn{font-size:13px;}
   .cmp-summary{padding:6px 14px;gap:6px 16px;}
+  .preset-strip{padding:9px 14px;}
+  .preset-chip{flex:1;min-width:calc(50% - 8px);}
 
   /* stack sidebar above charts, page scrolls naturally */
   .layout{display:block;flex:none;min-height:0;}
@@ -217,6 +240,12 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <span class="switch-lbl">Comparison Mode</span>
   </label>
 
+  <label class="switch">
+    <input type="checkbox" id="presetToggle" onchange="togglePresetMode(this.checked)">
+    <span class="track"><span class="thumb"></span></span>
+    <span class="switch-lbl">Preset Compare</span>
+  </label>
+
   <div class="tabs" id="tabs" style="display:none;">
     <button class="tab act" id="tabA" onclick="setActive('A')">CONFIG A</button>
     <button class="tab" id="tabB" onclick="setActive('B')">CONFIG B</button>
@@ -228,6 +257,24 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   </div>
 
   <span class="tb-hint">Edit sliders to shape the active config</span>
+</div>
+
+<!-- PRESET COMPARE STRIP -->
+<div class="preset-strip" id="presetStrip">
+  <span class="preset-lbl">Pick two presets</span>
+  <button class="preset-chip" data-preset="dh26"    onclick="pickPreset('dh26')">
+    <span class="pc-slot"></span><span class="pc-name">26″ Downhill</span><span class="pc-sub">Enduro · 2.50″ · 26psi · 800N</span>
+  </button>
+  <button class="preset-chip" data-preset="trail275" onclick="pickPreset('trail275')">
+    <span class="pc-slot"></span><span class="pc-name">27.5″ Trail</span><span class="pc-sub">Trail · 2.40″ · 28psi · 600N</span>
+  </button>
+  <button class="preset-chip" data-preset="xc29"     onclick="pickPreset('xc29')">
+    <span class="pc-slot"></span><span class="pc-name">29″ XC Race</span><span class="pc-sub">XC · 2.25″ · 32psi · 500N</span>
+  </button>
+  <button class="preset-chip" data-preset="mara32"   onclick="pickPreset('mara32')">
+    <span class="pc-slot"></span><span class="pc-name">32″ Marathon</span><span class="pc-sub">Slick · 2.10″ · 38psi · 520N</span>
+  </button>
+  <span class="preset-hint">Editing any slider returns to manual comparison</span>
 </div>
 
 <!-- COMPARE SUMMARY STRIP -->
@@ -381,9 +428,15 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
       <div class="ph">
         <div><div class="pt">Contact Patch Footprint</div>
         <div class="ps" id="psFP">Pressure, load &amp; rim-width dependent — fixed mm scale</div></div>
-        <div class="pfig">FIG. 5</div>
+        <div class="pfig fp-delta" id="fpFig">FIG. 5</div>
       </div>
       <div class="fpw"><canvas id="cFP"></canvas></div>
+      <div class="fp-ctrl" id="fpCtrl">
+        <span class="fp-ctrl-lbl">Side&nbsp;by&nbsp;side</span>
+        <input type="range" id="fpOverlap" min="0" max="100" step="1" value="0" oninput="onOverlap(this)">
+        <span class="fp-ctrl-lbl">Overlaid</span>
+        <span class="fp-ctrl-val" id="fpOverlapVal">0%</span>
+      </div>
     </div>
 
     <div class="panel">
@@ -477,6 +530,26 @@ let configB = Object.assign(mkDefault(), { kn:0, p:38, fz:700 });
 let compareMode = false;
 let active = 'A';
 function cur(){ return active === 'A' ? configA : configB; }
+
+/* ═══════════════════════════════════════════════
+   PRESET WHEELS — one per size, distinct character.
+   Each is a complete config the physics can evaluate.
+═══════════════════════════════════════════════ */
+const PRESETS = {
+  dh26:     { name:'26″ Downhill', sz:'26',   w:2.50, rimW:30, kn:3, p:26, fz:800, gamma:0 },
+  trail275: { name:'27.5″ Trail',  sz:'27.5', w:2.40, rimW:30, kn:2, p:28, fz:600, gamma:0 },
+  xc29:     { name:'29″ XC Race',  sz:'29',   w:2.25, rimW:25, kn:1, p:32, fz:500, gamma:0 },
+  mara32:   { name:'32″ Marathon', sz:'32',   w:2.10, rimW:24, kn:0, p:38, fz:520, gamma:0 },
+};
+let presetMode = false;
+let presetSel  = [];          // up to 2 preset keys; [0]→A, [1]→B
+let nameA = null, nameB = null; // display names when configs come from presets
+let fpOverlapPct = 0;         // footprint overlap dial (0 = side by side, 100 = concentric)
+
+function cfgFromPreset(key){
+  const p = PRESETS[key];
+  return { sz:p.sz, w:p.w, rimW:p.rimW, kn:p.kn, p:p.p, fz:p.fz, gamma:p.gamma };
+}
 
 const KNB = {
   0:{ mu_f:1.00, cs_f:1.00, cov:1.00, peakShift:0.0,  label:'Slick'  },
@@ -893,7 +966,7 @@ function drawFP(pt, cfg){
 /* ═══════════════════════════════════════════════
    FOOTPRINT — comparison overlay (A vs B outlines)
 ═══════════════════════════════════════════════ */
-function drawFPCompare(ptA, ptB){
+function drawFPCompare(ptA, ptB, overlap){
   const cv   = document.getElementById('cFP');
   const wrap = cv.parentElement;
   const cW   = Math.max(200, wrap.clientWidth  - 8);
@@ -906,38 +979,58 @@ function drawFPCompare(ptA, ptB){
   for (let x=0;x<cW;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,cH);ctx.stroke();}
   for (let y=0;y<cH;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke();}
 
-  const cyC = cH/2;
-  // crosshair
-  ctx.setLineDash([4,4]); ctx.strokeStyle = hexToRgba(T.border,.9);
-  ctx.beginPath(); ctx.moveTo(cW/2,0); ctx.lineTo(cW/2,cH); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0,cyC); ctx.lineTo(cW,cyC); ctx.stroke();
-  ctx.setLineDash([]);
+  // Local scale: fit BOTH patches side-by-side (overlap=0, widest case) within the
+  // canvas, then keep that scale as they slide together. The 10 mm bar uses the same
+  // scale, so measurements stay honest even though it auto-fits.
+  const gapMM  = 8;
+  const availW = cW - 26;
+  const availH = cH - 62;
+  const totalW0 = ptA.width + ptB.width + gapMM;
+  const maxLen  = Math.max(ptA.length, ptB.length);
+  let sc = Math.min(FIXED_SCALE, availW / totalW0, availH / maxLen);
+  sc = Math.max(0.55, sc);
 
-  function patchOutline(pt, cfg, color, dashed, fill){
-    const pxL = pt.length*FIXED_SCALE, pxW = pt.width*FIXED_SCALE;
-    const cx = cW/2 + cfg.gamma*1.8, cy = cyC;
-    const x0 = cx - pxW/2, y0 = cy - pxL/2, cr = Math.min(pxW,pxL)*0.2;
-    if (fill){ ctx.fillStyle = hexToRgba(color,.10); rrect(ctx,x0,y0,pxW,pxL,cr); ctx.fill(); }
+  const pxWA = ptA.width*sc,  pxLA = ptA.length*sc;
+  const pxWB = ptB.width*sc,  pxLB = ptB.length*sc;
+  const gapPx = gapMM*sc;
+
+  const cyC   = cH/2 + 6;
+  const maxDist = pxWA/2 + pxWB/2 + gapPx;      // fully side by side
+  const dist    = (1 - overlap) * maxDist;      // dial collapses the gap
+  const cxA = cW/2 - dist/2;
+  const cxB = cW/2 + dist/2;
+
+  function drawPatch(cx, pxW, pxL, color, dashed, tag){
+    const x0 = cx - pxW/2, y0 = cyC - pxL/2, cr = Math.min(pxW,pxL)*0.2;
+    ctx.fillStyle = hexToRgba(color,.12);
+    rrect(ctx,x0,y0,pxW,pxL,cr); ctx.fill();
     ctx.setLineDash(dashed ? [7,5] : []);
     ctx.strokeStyle = color; ctx.lineWidth = 2.2;
     rrect(ctx,x0,y0,pxW,pxL,cr); ctx.stroke();
     ctx.setLineDash([]);
-    return {pxW,pxL};
+    // letter tag at patch center
+    ctx.fillStyle = color; ctx.font = 'bold 13px IBM Plex Mono'; ctx.textAlign='center';
+    ctx.fillText(tag, cx, cyC - pxL/2 - 5);
   }
 
-  // draw A (solid, filled) then B (dashed, outline)
-  patchOutline(ptA, configA, T.cmpA, false, true);
-  patchOutline(ptB, configB, T.cmpB, true,  false);
+  // A (solid) then B (dashed) — draw larger one first so the smaller stays visible on top
+  if (ptA.area >= ptB.area){
+    drawPatch(cxA, pxWA, pxLA, T.cmpA, false, 'A');
+    drawPatch(cxB, pxWB, pxLB, T.cmpB, true,  'B');
+  } else {
+    drawPatch(cxB, pxWB, pxLB, T.cmpB, true,  'B');
+    drawPatch(cxA, pxWA, pxLA, T.cmpA, false, 'A');
+  }
 
-  // 10 mm scale bar
-  const tenPx = 10*FIXED_SCALE, bx = 12, by = cH-18;
-  ctx.fillStyle = hexToRgba(T.sec,.7); ctx.fillRect(bx,by,tenPx,3);
-  ctx.font='8px IBM Plex Mono'; ctx.textAlign='left'; ctx.fillStyle=hexToRgba(T.sec,.7); ctx.fillText('10 mm', bx, by-3);
+  // 10 mm scale bar (uses local scale)
+  const tenPx = 10*sc, bx = 12, by = cH-16;
+  ctx.fillStyle = hexToRgba(T.sec,.75); ctx.fillRect(bx,by,tenPx,3);
+  ctx.font='8px IBM Plex Mono'; ctx.textAlign='left'; ctx.fillStyle=hexToRgba(T.sec,.75); ctx.fillText('10 mm', bx, by-3);
 
-  // legend + readouts
+  // legend + readouts (top-left, two lines)
   ctx.font = '10px IBM Plex Mono'; ctx.textAlign = 'left';
-  ctx.fillStyle = T.cmpA; ctx.fillText('A  '+ptA.width.toFixed(0)+'×'+ptA.length.toFixed(0)+' mm · '+ptA.area.toFixed(1)+' cm²', 12, 16);
-  ctx.fillStyle = T.cmpB; ctx.fillText('B  '+ptB.width.toFixed(0)+'×'+ptB.length.toFixed(0)+' mm · '+ptB.area.toFixed(1)+' cm²', 12, 30);
+  ctx.fillStyle = T.cmpA; ctx.fillText('A  '+ptA.width.toFixed(0)+'×'+ptA.length.toFixed(0)+' mm · '+ptA.area.toFixed(1)+' cm²', 12, 15);
+  ctx.fillStyle = T.cmpB; ctx.fillText('B  '+ptB.width.toFixed(0)+'×'+ptB.length.toFixed(0)+' mm · '+ptB.area.toFixed(1)+' cm²', 12, 29);
 }
 
 /* ═══════════════════════════════════════════════
@@ -981,13 +1074,28 @@ function renderReadouts(){
    FOOTPRINT dispatcher
 ═══════════════════════════════════════════════ */
 function renderFootprint(){
+  const fpFig  = document.getElementById('fpFig');
+  const fpCtrl = document.getElementById('fpCtrl');
   if (compareMode){
-    drawFPCompare(
-      patch(configA.fz, configA.p, configA.sz, configA.w, configA.rimW, configA.kn),
-      patch(configB.fz, configB.p, configB.sz, configB.w, configB.rimW, configB.kn)
-    );
-    document.getElementById('psFP').textContent = 'A vs B — same mm scale (A filled, B dashed)';
+    // show the dial FIRST so the canvas measures its final (reduced) height
+    fpCtrl.style.display = 'flex';
+    const ptA = patch(configA.fz, configA.p, configA.sz, configA.w, configA.rimW, configA.kn);
+    const ptB = patch(configB.fz, configB.p, configB.sz, configB.w, configB.rimW, configB.kn);
+    drawFPCompare(ptA, ptB, fpOverlapPct/100);
+    document.getElementById('psFP').textContent = 'A vs B — dial slides between side-by-side and overlaid';
+    // area % difference (positive → B larger than A), shown top-right
+    const dPct = ptA.area > 0 ? ((ptB.area - ptA.area) / ptA.area) * 100 : 0;
+    const sign = dPct >= 0 ? '+' : '−';
+    fpFig.textContent = 'Δarea ' + sign + Math.abs(dPct).toFixed(1) + '%';
+    fpFig.title = 'B footprint area vs A (positive = B larger)';
+    fpFig.style.color = dPct >= 0 ? T.cmpB : T.cmpA;
+    fpFig.style.borderColor = dPct >= 0 ? T.cmpB : T.cmpA;
   } else {
+    fpCtrl.style.display = 'none';
+    fpFig.textContent = 'FIG. 5';
+    fpFig.title = '';
+    fpFig.style.color = '';
+    fpFig.style.borderColor = '';
     drawFP(patch(configA.fz, configA.p, configA.sz, configA.w, configA.rimW, configA.kn), configA);
     document.getElementById('psFP').textContent = 'Pressure, load & rim-width dependent — fixed mm scale';
   }
@@ -1010,8 +1118,8 @@ function cfgLabel(c){
   return c.sz+'" · '+KNB[c.kn].label+' · '+c.p+'psi · '+c.fz+'N'+(c.gamma!==0?(' · '+(c.gamma>0?'+':'')+c.gamma+'°'):'');
 }
 function updateSummary(){
-  document.getElementById('sumA').textContent = cfgLabel(configA);
-  document.getElementById('sumB').textContent = cfgLabel(configB);
+  document.getElementById('sumA').textContent = (nameA ? nameA + ' — ' : '') + cfgLabel(configA);
+  document.getElementById('sumB').textContent = (nameB ? nameB + ' — ' : '') + cfgLabel(configB);
 }
 
 /* ═══════════════════════════════════════════════
@@ -1031,30 +1139,95 @@ function syncControls(){
 /* ═══════════════════════════════════════════════
    EVENT HANDLERS (write to active config)
 ═══════════════════════════════════════════════ */
-function setSz(v){ cur().sz = v; syncControls(); update(); }
-function setKn(v){ cur().kn = v; syncControls(); update(); }
-function onW(el){  cur().w    = +el.value; document.getElementById('vW').textContent   = (+el.value).toFixed(2)+'"'; update(); }
-function onRim(el){cur().rimW = +el.value; document.getElementById('vRim').textContent = el.value+' mm'; update(); }
-function onP(el){  cur().p    = +el.value; document.getElementById('vP').textContent   = el.value+' psi'; update(); }
-function onFz(el){ cur().fz   = +el.value; document.getElementById('vFz').textContent  = el.value+' N'; update(); }
-function onG(el){  cur().gamma= +el.value; document.getElementById('vG').textContent   = (cur().gamma>=0?'+':'')+cur().gamma+'°'; update(); }
+function setSz(v){ breakToManual(); cur().sz = v; syncControls(); update(); }
+function setKn(v){ breakToManual(); cur().kn = v; syncControls(); update(); }
+function onW(el){  breakToManual(); cur().w    = +el.value; document.getElementById('vW').textContent   = (+el.value).toFixed(2)+'"'; update(); }
+function onRim(el){breakToManual(); cur().rimW = +el.value; document.getElementById('vRim').textContent = el.value+' mm'; update(); }
+function onP(el){  breakToManual(); cur().p    = +el.value; document.getElementById('vP').textContent   = el.value+' psi'; update(); }
+function onFz(el){ breakToManual(); cur().fz   = +el.value; document.getElementById('vFz').textContent  = el.value+' N'; update(); }
+function onG(el){  breakToManual(); cur().gamma= +el.value; document.getElementById('vG').textContent   = (cur().gamma>=0?'+':'')+cur().gamma+'°'; update(); }
+
+/* footprint overlap dial — view control only, does not break preset mode */
+function onOverlap(el){ fpOverlapPct = +el.value; document.getElementById('fpOverlapVal').textContent = el.value+'%'; renderFootprint(); }
 
 /* ═══════════════════════════════════════════════
    COMPARISON MODE + TABS
 ═══════════════════════════════════════════════ */
-function toggleCompare(on){
-  compareMode = on;
+function setCompareUI(on){
   document.getElementById('tabs').style.display      = on ? 'inline-flex' : 'none';
   document.getElementById('cmpLegend').style.display = on ? 'inline-flex' : 'none';
   document.getElementById('cmpSummary').style.display= on ? 'flex' : 'none';
   const disp = on ? 'inline-block' : 'none';
   document.getElementById('roTag1').style.display = disp;
   document.getElementById('roTag2').style.display = disp;
+}
+function toggleCompare(on){
+  compareMode = on;
+  if (!on){                       // leaving comparison also leaves preset mode
+    presetMode = false;
+    document.getElementById('presetToggle').checked = false;
+    document.getElementById('presetStrip').style.display = 'none';
+    nameA = nameB = null;
+    refreshPresetChips();
+  }
+  setCompareUI(on);
   if (on && active !== 'A' && active !== 'B') active = 'A';
   updateActiveTagUI();
   syncControls();
   update();
 }
+
+/* ─── PRESET COMPARE ─── */
+function togglePresetMode(on){
+  presetMode = on;
+  document.getElementById('presetStrip').style.display = on ? 'flex' : 'none';
+  if (on){
+    compareMode = true;
+    document.getElementById('cmpToggle').checked = true;
+    setCompareUI(true);
+    if (active !== 'A' && active !== 'B') active = 'A';
+    if (presetSel.length < 2) presetSel = ['dh26','xc29'];  // default: DH vs XC (max contrast)
+    applyPresets();
+    updateActiveTagUI();
+  } else {
+    nameA = nameB = null;
+    refreshPresetChips();
+    updateSummary();
+    update();
+  }
+}
+function pickPreset(key){
+  if (presetSel.includes(key)) return;   // keep exactly two; ignore re-click
+  presetSel.push(key);
+  if (presetSel.length > 2) presetSel.shift();   // FIFO — newest two win
+  applyPresets();
+}
+function applyPresets(){
+  if (presetSel[0]){ configA = cfgFromPreset(presetSel[0]); nameA = PRESETS[presetSel[0]].name; }
+  if (presetSel[1]){ configB = cfgFromPreset(presetSel[1]); nameB = PRESETS[presetSel[1]].name; }
+  refreshPresetChips();
+  syncControls();
+  update();
+}
+function refreshPresetChips(){
+  document.querySelectorAll('.preset-chip').forEach(ch => {
+    const k = ch.dataset.preset;
+    const slot = ch.querySelector('.pc-slot');
+    ch.classList.remove('selA','selB');
+    if (presetMode && presetSel[0] === k){ ch.classList.add('selA'); slot.textContent = 'A'; }
+    else if (presetMode && presetSel[1] === k){ ch.classList.add('selB'); slot.textContent = 'B'; }
+    else { slot.textContent = ''; }
+  });
+}
+function breakToManual(){
+  if (!presetMode) return;               // editing a param drops preset → manual compare
+  presetMode = false;
+  document.getElementById('presetToggle').checked = false;
+  document.getElementById('presetStrip').style.display = 'none';
+  nameA = nameB = null;
+  refreshPresetChips();
+}
+
 function setActive(which){
   active = which;
   document.getElementById('tabA').classList.toggle('act', which==='A');
