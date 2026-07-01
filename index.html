@@ -1,782 +1,615 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MTB Tire Dynamics — Pacejka & FastBike Model</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0b0d12;--surf1:#111318;--surf2:#181c25;--surf3:#1f2435;
-  --border:#252c3f;--border2:#303a55;
-  --accent:#f57c14;--accentD:rgba(245,124,20,.18);--accentG:rgba(245,124,20,.35);
-  --cyan:#12c4e8;--green:#4ef08a;--red:#f04e6c;--purple:#b07ef5;
-  --txt:#dde2ef;--txt2:#7b87a0;--txt3:#3d4a62;
-  --mono:'IBM Plex Mono',monospace;--body:'Barlow Condensed',sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-html{height:100%;}
-body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--body);font-size:14px;display:flex;flex-direction:column;overflow:hidden;}
+import { useState } from "react";
+import {
+  RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  LineChart, Line, ReferenceLine,
+} from "recharts";
 
-/* HEADER */
-.hdr{display:flex;align-items:center;gap:12px;padding:9px 18px;background:var(--surf1);border-bottom:1px solid var(--border);flex-shrink:0;}
-.hdr-wheel{width:36px;height:36px;flex-shrink:0;animation:spin 14s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.hdr-titles{flex:1;}
-.hdr-main{font-size:15px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
-.hdr-sub{font-family:var(--mono);font-size:9.5px;color:var(--txt2);margin-top:1px;}
-.hdr-authors{font-family:var(--mono);font-size:9px;color:var(--accent);padding:3px 8px;background:var(--accentD);border:1px solid rgba(245,124,20,.3);border-radius:2px;}
-.hdr-tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;border:1px solid var(--border2);color:var(--txt2);background:var(--surf2);padding:3px 8px;border-radius:2px;}
-
-/* LAYOUT */
-.layout{display:grid;grid-template-columns:272px 1fr;flex:1;min-height:0;}
-
-/* FOOTER */
-.ftr{background:var(--surf1);border-top:1px solid var(--border);padding:5px 18px;font-family:var(--mono);font-size:9px;color:var(--txt3);display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.ftr a{color:var(--cyan);text-decoration:none;}
-.ftr a:hover{text-decoration:underline;}
-.ftr-dot{color:var(--border2);}
-
-/* SIDEBAR */
-.sb{background:var(--surf1);border-right:1px solid var(--border);padding:14px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;}
-.sb::-webkit-scrollbar{width:3px;}
-.sb::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-.sec{display:flex;flex-direction:column;gap:10px;}
-.sec-h{font-family:var(--mono);font-size:9px;letter-spacing:.13em;color:var(--accent);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;}
-
-/* size buttons */
-.sz-row{display:flex;gap:4px;}
-.sz-btn{flex:1;padding:6px 0;border-radius:3px;cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:700;background:var(--surf2);border:1px solid var(--border);color:var(--txt2);transition:all .13s;}
-.sz-btn:hover{border-color:var(--border2);color:var(--txt);}
-.sz-btn.act{background:var(--accentD);border-color:var(--accent);color:var(--accent);}
-
-/* knob level buttons */
-.kn-row{display:flex;gap:4px;}
-.kn-btn{flex:1;padding:5px 2px;border-radius:3px;cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;background:var(--surf2);border:1px solid var(--border);color:var(--txt2);transition:all .13s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px;}
-.kn-btn span.kn-num{font-size:12px;}
-.kn-btn span.kn-lbl{font-size:8px;letter-spacing:.04em;color:var(--txt3);}
-.kn-btn:hover{border-color:var(--border2);color:var(--txt);}
-.kn-btn.act{background:var(--accentD);border-color:var(--accent);color:var(--accent);}
-.kn-btn.act span.kn-lbl{color:rgba(245,124,20,.7);}
-
-/* sliders */
-.ctrl{display:flex;flex-direction:column;gap:4px;}
-.ctrl-lbl{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--txt2);}
-.ctrl-val{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--txt);}
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--surf3);border-radius:2px;outline:none;cursor:pointer;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 7px var(--accentG);cursor:pointer;}
-input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;}
-.sl-ends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--txt3);}
-
-/* coeff grid */
-.cg{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.cb{background:var(--surf2);border:1px solid var(--border);border-radius:3px;padding:6px 8px;}
-.cb-n{font-family:var(--mono);font-size:8.5px;color:var(--txt3);letter-spacing:.05em;text-transform:uppercase;}
-.cb-v{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--cyan);}
-.cb-v.g{color:var(--green);}
-
-/* stats */
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
-.st{background:var(--surf2);border:1px solid var(--border);border-radius:3px;padding:5px 7px;}
-.st-l{font-family:var(--mono);font-size:8.5px;color:var(--txt3);letter-spacing:.05em;text-transform:uppercase;}
-.st-v{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--green);}
-
-/* formula */
-.fml{background:var(--surf2);border:1px solid var(--border);border-radius:3px;padding:8px 9px;font-family:var(--mono);font-size:9.5px;color:var(--txt2);line-height:1.65;}
-.fml-t{color:var(--accent);font-size:8.5px;letter-spacing:.09em;text-transform:uppercase;margin-bottom:4px;}
-.fml-eq{color:var(--txt);}
-.fml-n{color:var(--txt3);font-size:8.5px;margin-top:3px;}
-
-/* MAIN */
-.main{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;background:var(--border);overflow:hidden;}
-.panel{background:var(--surf1);padding:12px 14px;display:flex;flex-direction:column;gap:7px;overflow:hidden;}
-.ph{display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0;}
-.pt{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
-.ps{font-family:var(--mono);font-size:8.5px;color:var(--txt2);margin-top:1px;}
-.pfig{font-family:var(--mono);font-size:9px;color:var(--txt3);border:1px solid var(--border);padding:2px 5px;border-radius:2px;}
-.cw{position:relative;flex:1;min-height:0;}
-.cw canvas{width:100%!important;height:100%!important;}
-.fpw{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;}
-</style>
-</head>
-<body>
-
-<!-- HEADER -->
-<header class="hdr">
-  <svg class="hdr-wheel" viewBox="0 0 36 36" fill="none">
-    <circle cx="18" cy="18" r="16" stroke="#f57c14" stroke-width="1.5"/>
-    <circle cx="18" cy="18" r="10" stroke="#f57c14" stroke-width="1" opacity=".35"/>
-    <circle cx="18" cy="18" r="3" fill="#f57c14"/>
-    <line x1="18" y1="2" x2="18" y2="7" stroke="#f57c14" stroke-width="1.5"/>
-    <line x1="18" y1="29" x2="18" y2="34" stroke="#f57c14" stroke-width="1.5"/>
-    <line x1="2" y1="18" x2="7" y2="18" stroke="#f57c14" stroke-width="1.5"/>
-    <line x1="29" y1="18" x2="34" y2="18" stroke="#f57c14" stroke-width="1.5"/>
-    <line x1="5.8" y1="5.8" x2="9.5" y2="9.5" stroke="#f57c14" stroke-width="1.2"/>
-    <line x1="26.5" y1="26.5" x2="30.2" y2="30.2" stroke="#f57c14" stroke-width="1.2"/>
-    <line x1="30.2" y1="5.8" x2="26.5" y2="9.5" stroke="#f57c14" stroke-width="1.2"/>
-    <line x1="9.5" y1="26.5" x2="5.8" y2="30.2" stroke="#f57c14" stroke-width="1.2"/>
-    <rect x="15" y="1" width="6" height="2.5" rx="1" fill="#f57c14" opacity=".7"/>
-    <rect x="15" y="32.5" width="6" height="2.5" rx="1" fill="#f57c14" opacity=".7"/>
-    <rect x="1" y="16.5" width="2.5" height="5" rx="1" fill="#f57c14" opacity=".7"/>
-    <rect x="32.5" y="16.5" width="2.5" height="5" rx="1" fill="#f57c14" opacity=".7"/>
-  </svg>
-  <div class="hdr-titles">
-    <div class="hdr-main">MTB Tire Dynamics Simulator</div>
-    <div class="hdr-sub">Pacejka Magic Tire Formula · FastBike Twisting Torque Polynomial</div>
-  </div>
-  <div class="hdr-authors">Dressel, A.; Sadauckas, J.</div>
-  <div class="hdr-tag">RESEARCH INTERACTIVE</div>
-</header>
-
-<!-- LAYOUT -->
-<div class="layout">
-
-  <!-- SIDEBAR -->
-  <aside class="sb">
-
-    <div class="sec">
-      <div class="sec-h">Tire Configuration</div>
-
-      <div class="ctrl">
-        <div class="ctrl-lbl"><span>Wheel Diameter</span></div>
-        <div class="sz-row">
-          <button class="sz-btn" onclick="setSz('26',this)">26"</button>
-          <button class="sz-btn" onclick="setSz('27.5',this)">27.5"</button>
-          <button class="sz-btn act" onclick="setSz('29',this)">29"</button>
-          <button class="sz-btn" onclick="setSz('32',this)" title="Extrapolated beyond paper data">32"*</button>
-        </div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--txt3);">* 32" extrapolated beyond tested sizes</div>
-      </div>
-
-      <div class="ctrl">
-        <div class="ctrl-lbl"><span>Nominal Tire Width</span><span class="ctrl-val" id="vW">2.35"</span></div>
-        <input type="range" id="sW" min="1.9" max="2.6" step="0.05" value="2.35" oninput="onW(this)">
-        <div class="sl-ends"><span>1.9"</span><span>2.6"</span></div>
-      </div>
-
-      <div class="ctrl">
-        <div class="ctrl-lbl"><span>Internal Rim Width</span><span class="ctrl-val" id="vRim">25 mm</span></div>
-        <input type="range" id="sRim" min="19" max="40" step="1" value="25" oninput="onRim(this)">
-        <div class="sl-ends"><span>19 mm</span><span>40 mm</span></div>
-      </div>
-      <div style="font-family:var(--mono);font-size:8px;color:var(--txt3);margin-top:-5px;">Wider rim → squarer profile → wider contact</div>
-
-      <div class="ctrl">
-        <div class="ctrl-lbl" style="margin-bottom:3px;"><span>Tread Knob Level</span></div>
-        <div class="kn-row">
-          <button class="kn-btn" onclick="setKn(0,this)"><span class="kn-num">0</span><span class="kn-lbl">SLICK</span></button>
-          <button class="kn-btn" onclick="setKn(1,this)"><span class="kn-num">1</span><span class="kn-lbl">XC</span></button>
-          <button class="kn-btn act" onclick="setKn(2,this)"><span class="kn-num">2</span><span class="kn-lbl">TRAIL</span></button>
-          <button class="kn-btn" onclick="setKn(3,this)"><span class="kn-num">3</span><span class="kn-lbl">ENDURO</span></button>
-        </div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--txt3);">Higher knobs: ↓ CS, ↓ μ, ↓ effective contact area</div>
-      </div>
-    </div>
-
-    <div class="sec">
-      <div class="sec-h">Loading Conditions</div>
-
-      <div class="ctrl">
-        <div class="ctrl-lbl"><span>Inflation Pressure</span><span class="ctrl-val" id="vP">30 psi</span></div>
-        <input type="range" id="sP" min="15" max="50" step="1" value="30" oninput="onP(this)">
-        <div class="sl-ends"><span>15 psi</span><span>50 psi</span></div>
-      </div>
-
-      <div class="ctrl">
-        <div class="ctrl-lbl"><span>Normal Load F<sub>z</sub></span><span class="ctrl-val" id="vFz">500 N</span></div>
-        <input type="range" id="sFz" min="200" max="1000" step="10" value="500" oninput="onFz(this)">
-        <div class="sl-ends"><span>200 N</span><span>1000 N</span></div>
-      </div>
-
-      <div class="ctrl">
-        <div class="ctrl-lbl"><span>Camber Angle γ</span><span class="ctrl-val" id="vG">0°</span></div>
-        <input type="range" id="sG" min="-25" max="25" step="1" value="0" oninput="onG(this)">
-        <div class="sl-ends"><span>−25°</span><span>+25°</span></div>
-      </div>
-    </div>
-
-    <div class="sec">
-      <div class="sec-h">Pacejka B·C·D·E Coefficients</div>
-      <div class="cg">
-        <div class="cb"><div class="cb-n">B — Stiffness</div><div class="cb-v" id="cB">—</div></div>
-        <div class="cb"><div class="cb-n">C — Shape</div><div class="cb-v" id="cC">—</div></div>
-        <div class="cb"><div class="cb-n">D — Peak (N)</div><div class="cb-v" id="cD">—</div></div>
-        <div class="cb"><div class="cb-n">E — Curvature</div><div class="cb-v" id="cE">—</div></div>
-        <div class="cb"><div class="cb-n">BCD (N/rad)</div><div class="cb-v" id="cBCD">—</div></div>
-        <div class="cb"><div class="cb-n">α<sub>peak</sub></div><div class="cb-v" id="cAP">—</div></div>
-      </div>
-    </div>
-
-    <div class="sec">
-      <div class="sec-h">FastBike Poly Coefficients</div>
-      <div class="cg">
-        <div class="cb"><div class="cb-n">t₀ (trail m)</div><div class="cb-v g" id="ft0">—</div></div>
-        <div class="cb"><div class="cb-n">B<sub>t</sub></div><div class="cb-v g" id="fBt">—</div></div>
-        <div class="cb"><div class="cb-n">c₀ (offset)</div><div class="cb-v g" id="fc0">—</div></div>
-        <div class="cb"><div class="cb-n">c₁ (linear)</div><div class="cb-v g" id="fc1">—</div></div>
-      </div>
-    </div>
-
-    <div class="sec">
-      <div class="sec-h">Derived Outputs</div>
-      <div class="sg">
-        <div class="st"><div class="st-l">Eff. Width</div><div class="st-v" id="sEW">—</div></div>
-        <div class="st"><div class="st-l">Contact Area</div><div class="st-v" id="sA">—</div></div>
-        <div class="st"><div class="st-l">Patch L × W</div><div class="st-v" id="sPLW">—</div></div>
-        <div class="st"><div class="st-l">Peak F<sub>y</sub></div><div class="st-v" id="sFy">—</div></div>
-        <div class="st"><div class="st-l">Peak |M<sub>z</sub>|</div><div class="st-v" id="sMz">—</div></div>
-        <div class="st"><div class="st-l">μ<sub>y</sub></div><div class="st-v" id="sMu">—</div></div>
-        <div class="st"><div class="st-l">CS (N/°)</div><div class="st-v" id="sCS">—</div></div>
-        <div class="st"><div class="st-l">Vert. Stiff.</div><div class="st-v" id="sKz">—</div></div>
-      </div>
-    </div>
-
-    <div class="sec">
-      <div class="sec-h">Model Equations</div>
-      <div class="fml">
-        <div class="fml-t">Pacejka Lateral Force</div>
-        <div class="fml-eq">Fy = D·sin(C·atan(B·α'−E·(B·α'−atan(B·α'))))</div>
-        <div class="fml-n">α' = α + SHy (camber shift)</div>
-      </div>
-      <div class="fml" style="margin-top:5px;">
-        <div class="fml-t">FastBike M<sub>z</sub></div>
-        <div class="fml-eq">Mz = −t(α)·Fy + c₀+c₁α+c₂α²</div>
-        <div class="fml-eq">t(α) = t₀·cos(C<sub>t</sub>·atan(B<sub>t</sub>·α))</div>
-        <div class="fml-n">Pneumatic trail + poly residual</div>
-      </div>
-    </div>
-
-  </aside>
-
-  <!-- CHART GRID -->
-  <div class="main">
-
-    <div class="panel">
-      <div class="ph">
-        <div><div class="pt">Lateral Force F<sub>y</sub> vs Slip Angle α</div>
-        <div class="ps">Pacejka Magic Formula — current vs slick ref overlay</div></div>
-        <div class="pfig">FIG. 6</div>
-      </div>
-      <div class="cw"><canvas id="cFy"></canvas></div>
-    </div>
-
-    <div class="panel">
-      <div class="ph">
-        <div><div class="pt">Self-Aligning Moment M<sub>z</sub> vs Slip Angle α</div>
-        <div class="ps">FastBike polynomial + pneumatic trail</div></div>
-        <div class="pfig">FIG. 6</div>
-      </div>
-      <div class="cw"><canvas id="cMz"></canvas></div>
-    </div>
-
-    <div class="panel">
-      <div class="ph">
-        <div><div class="pt">Contact Patch Footprint</div>
-        <div class="ps">Pressure, load &amp; rim-width dependent — fixed mm scale</div></div>
-        <div class="pfig">FIG. 5</div>
-      </div>
-      <div class="fpw"><canvas id="cFP"></canvas></div>
-    </div>
-
-    <div class="panel">
-      <div class="ph">
-        <div><div class="pt">Pressure Sensitivity — F<sub>y</sub> Envelope</div>
-        <div class="ps">Fy at p = 20·25·30·35·40 psi — current highlighted</div></div>
-        <div class="pfig">FIG. 3</div>
-      </div>
-      <div class="cw"><canvas id="cPS"></canvas></div>
-    </div>
-
-  </div>
-</div>
-
-<!-- FOOTER -->
-<footer class="ftr">
-  <span>Dressel, A.; Sadauckas, J. Characterization and Modelling of Various Sized Mountain Bike Tires and the Effects of Tire Tread Knobs and Inflation Pressure.</span>
-  <span class="ftr-dot">·</span>
-  <span><em>Appl. Sci.</em> 2020, 10, 3156.</span>
-  <span class="ftr-dot">·</span>
-  <a href="https://doi.org/10.3390/app10093156" target="_blank">https://doi.org/10.3390/app10093156</a>
-</footer>
-
-<script>
-/* ═══════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════ */
-const S = { sz:'29', w:2.35, rimW:25, kn:2, p:30, fz:500, gamma:0 };
-
-/* ═══════════════════════════════════════════════
-   KNOB LEVEL PARAMETERS
-   Based on paper: knobs reduce cornering stiffness
-   and effective friction due to knob compliance.
-   Level 0=slick, 1=XC low-profile, 2=Trail, 3=Enduro
-═══════════════════════════════════════════════ */
-const KNB = {
-  0:{ mu_f:1.00, cs_f:1.00, cov:1.00, peakShift:0.0,  label:'Slick'  },
-  1:{ mu_f:0.95, cs_f:0.94, cov:0.84, peakShift:0.8,  label:'XC'     },
-  2:{ mu_f:0.87, cs_f:0.86, cov:0.68, peakShift:1.8,  label:'Trail'  },
-  3:{ mu_f:0.80, cs_f:0.78, cov:0.53, peakShift:3.2,  label:'Enduro' },
+// ─────────────────────────────────────────────────────────────────────────────
+// TERRAIN TABLE
+// baseFriction  — Coulomb friction coefficient for dry contact (0–1)
+// roughness     — macro surface irregularity index (0=glass, 1=jagged rock)
+// moistSens     — how badly moisture degrades grip (0=immune, 1=catastrophic)
+// ─────────────────────────────────────────────────────────────────────────────
+const TRAILS = {
+  rocky:      { name:"Rocky",      icon:"⛰",  baseFriction:0.65, roughness:0.90, moistSens:0.35, color:"#c4956a", desc:"Angular contacts · high knob stress" },
+  dirt:       { name:"Dirt",       icon:"🌱",  baseFriction:0.78, roughness:0.45, moistSens:0.82, color:"#a0724a", desc:"Loose loam over hardpack" },
+  mud:        { name:"Mud",        icon:"💧",  baseFriction:0.38, roughness:0.15, moistSens:1.00, color:"#6b8f71", desc:"Deep cohesive · knob displacement" },
+  slick_rock: { name:"Slick Rock", icon:"🪨",  baseFriction:0.52, roughness:0.08, moistSens:0.98, color:"#8898aa", desc:"Smooth sandstone · friction-critical" },
 };
 
-/* ═══════════════════════════════════════════════
-   SIZE FACTORS — extrapolated for 32"
-═══════════════════════════════════════════════ */
-const SF = {'26':0.94,'27.5':1.00,'29':1.06,'32':1.14};
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPOUND TABLE
+// gripMult  — multiplies baseFriction (soft deforms into micro-texture = more grip)
+// durBase   — abrasion resistance baseline (0–1)
+// rollBase  — rolling resistance scalar (higher = more hysteresis loss)
+// wetAdapt  — sipe effectiveness / water-film micro-drainage bonus
+// vibDamp   — *** KEY FIX *** vibration damping coefficient
+//             soft < 1: absorbs impacts, maintains contact at speed
+//             hard > 1: transmits impacts, loses contact at speed
+// ─────────────────────────────────────────────────────────────────────────────
+const COMPOUNDS = {
+  soft:   { name:"Soft",   sub:"Max Grip",     gripMult:1.35, durBase:0.38, rollBase:0.72, wetAdapt:0.22, vibDamp:0.72, color:"#f87171" },
+  medium: { name:"Medium", sub:"Balanced",     gripMult:1.00, durBase:0.68, rollBase:1.00, wetAdapt:0.12, vibDamp:1.00, color:"#f59e0b" },
+  hard:   { name:"Hard",   sub:"Most Durable", gripMult:0.72, durBase:1.00, rollBase:1.25, wetAdapt:0.05, vibDamp:1.38, color:"#60a5fa" },
+};
 
-/* ═══════════════════════════════════════════════
-   RIM WIDTH → EFFECTIVE TIRE WIDTH
-   Industry approximation: ~0.4mm tire width gain
-   per 1mm increase in internal rim width beyond 25mm
-═══════════════════════════════════════════════ */
-function effWidth(nomW_in, rimW_mm) {
-  const delta = rimW_mm - 25;
-  // ~0.016 in per mm rim width change (nominal for MTB)
-  return nomW_in + delta * 0.016;
-}
+const KNOB_H = [0.70, 1.00, 1.30]; // Low / Medium / High knob height multiplier
 
-/* ═══════════════════════════════════════════════
-   RIM WIDTH → PATCH ASPECT RATIO ADJUSTMENT
-   Wider rim = squarer profile = lower aspect ratio
-   (shorter, wider footprint)
-═══════════════════════════════════════════════ */
-function rimAspect(rimW_mm) {
-  const delta = rimW_mm - 25;
-  return delta * (-0.007); // reduces aspect (L/W) by 0.007 per mm
-}
+function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
 
-/* ═══════════════════════════════════════════════
-   PACEJKA LATERAL FORCE
-═══════════════════════════════════════════════ */
-function pFy(a_deg, fz, p_psi, sz, nomW, rimW, kn, gamma_deg) {
-  const a    = a_deg  * Math.PI / 180;
-  const g    = gamma_deg * Math.PI / 180;
-  const wEff = effWidth(nomW, rimW);
-  const sf   = SF[sz] * (wEff / 2.35);
-  const pn   = p_psi / 30;
-  const k    = KNB[kn];
-  const fn   = fz / 1000; // kN
+// ─────────────────────────────────────────────────────────────────────────────
+// PHYSICS ENGINE — all scores return 0–100
+// ─────────────────────────────────────────────────────────────────────────────
+function calcScores({ trail, compound, pressure, knob, weight, speed, rain }) {
+  const t = TRAILS[trail];
+  const c = COMPOUNDS[compound];
 
-  const mu   = 0.94 * sf * k.mu_f * (1 - 0.028 * (pn - 1));
-  const D    = mu * fz;
-  const C    = 1.44 + 0.03 * sf - 0.007 * (pn - 1);
-  const BCD  = (2.9 + 0.72 * fn) * sf * k.cs_f * (1 + 0.19 * (pn - 1)) * 1000;
-  const B    = BCD / (C * D);
-  const E    = -1.22 - 0.38 * (pn - 1);
-  // Camber thrust: horizontal shift proportional to gamma
-  const SHy  = 0.045 * g;
+  // ── Derived factors ──────────────────────────────────────────────────────
+  // pF: lower pressure expands contact patch (more grip, more resistance)
+  const pF = 1.30 - ((pressure - 18) / 17) * 0.60;
 
-  const x    = a + SHy;
-  const Fy   = D * Math.sin(C * Math.atan(B * x - E * (B * x - Math.atan(B * x))));
-  return { Fy, D, C, B, E, BCD, mu };
-}
+  // wF: heavier rider increases normal force → more traction (up to a point)
+  const wF = 0.80 + (weight / 250) * 0.40;
 
-/* ═══════════════════════════════════════════════
-   FASTBIKE Mz  (pneumatic trail + polynomial residual)
-═══════════════════════════════════════════════ */
-function fbMz(a_deg, fz, p_psi, sz, nomW, rimW, kn) {
-  const sf   = SF[sz] * (effWidth(nomW, rimW) / 2.35);
-  const pn   = p_psi / 30;
-  const k    = KNB[kn];
-  const fn   = fz / 1000;
-  const a_r  = a_deg * Math.PI / 180;
+  // kF: knob height multiplier
+  const kF = KNOB_H[knob];
 
-  const { Fy } = pFy(a_deg, fz, p_psi, sz, nomW, rimW, kn, 0);
+  // ── SPEED PENALTY — now compound-aware ────────────────────────────────────
+  // spdBase: raw kinematic penalty from velocity (terrain vibration + bounce)
+  // c.vibDamp scales it: soft absorbs vibration (< 1.0), hard amplifies it (> 1.0)
+  // Physical basis: softer rubber deforms around obstacles maintaining contact;
+  // harder rubber transmits shock and the tire skips/bounces at speed.
+  const spdBase = Math.min(0.28, (speed - 5) / 100);
+  const spdPenalty = spdBase * c.vibDamp; // ← FIXED: compound now changes this
 
-  // Pneumatic trail at zero slip — knobs shorten trail
-  const t0   = 0.038 * sf * k.cs_f * (1 - 0.07 * (pn - 1));
-  const Bt   = 3.6 + 0.4 * (pn - 1);
-  const Ct   = 1.5;
-  const t    = t0 * Math.cos(Ct * Math.atan(Bt * a_r));
+  // wet modifier
+  const wet = rain ? t.moistSens : 0;
 
-  // FastBike polynomial residual
-  const c0   = 0;
-  const c1   = -0.0025 * sf * fn * k.cs_f;
-  const c2   =  0.00009 * sf * fn;
-  const Mz   = -t * Fy + c0 + c1 * a_deg + c2 * a_deg ** 2;
+  // ── EFFECTIVE GRIP COEFFICIENT ────────────────────────────────────────────
+  // μ_eff = terrain friction × compound grip multiplier × contact-patch factor
+  // This is what actually changes in the coefficients panel, not gripMult alone.
+  const muEff = t.baseFriction * c.gripMult * pF;
 
-  return { Mz, t0, Bt, c0, c1 };
-}
+  // ── TRACTION ─────────────────────────────────────────────────────────────
+  let tr = muEff * wF;
+  if (rain) tr *= (1 - wet * 0.50 + c.wetAdapt * 0.80);
+  if (trail === "mud") tr *= (0.45 + kF * 0.35);   // knobs dig in, displace mud
+  tr = clamp((tr - spdPenalty) * 100, 5, 100);
 
-/* ═══════════════════════════════════════════════
-   CONTACT PATCH
-   Formula: A = Fz / p  (pneumatic contact theory)
-   Width constrained by physical tire; aspect ratio
-   varies with size and rim width.
-═══════════════════════════════════════════════ */
-function patch(fz, p_psi, sz, nomW, rimW, kn) {
-  const sf     = SF[sz];
-  const pPa    = p_psi * 6894.76;
-  const wEff   = effWidth(nomW, rimW);
-  const A      = fz / pPa;                        // m²
-  const aspect = 1.35 + 0.08 * sf + rimAspect(rimW); // L/W ratio
-  const maxW   = wEff * 0.0254 * 0.90;            // m, physical max width
-  const pw     = Math.min(maxW, Math.sqrt(A / Math.max(0.6, aspect)));
-  const pl     = A / pw;
-  const cov    = KNB[kn].cov;
+  // ── CORNERING ────────────────────────────────────────────────────────────
+  let co = t.baseFriction * 0.88 * c.gripMult * pF;
+  if (rain) co *= (1 - wet * 0.48 + c.wetAdapt * 0.70);
+  co += (kF - 0.70) * 0.10;                         // taller shoulder knobs help
+  co = clamp((co - spdPenalty * 1.50) * 100, 5, 100);
+
+  // ── BRAKING ──────────────────────────────────────────────────────────────
+  let br = t.baseFriction * 0.93 * c.gripMult * pF * wF;
+  if (rain) br *= (1 - wet * 0.55 + c.wetAdapt * 0.90);
+  br = clamp((br - spdPenalty * 2.00) * 95, 5, 100);
+
+  // ── ROLLING EFFICIENCY ───────────────────────────────────────────────────
+  // Low pressure + soft compound + rough terrain all increase hysteresis loss
+  let re = 1 / (c.rollBase * (1 + t.roughness * 0.40) * (1 + (1 - pF) * 0.35));
+  re = clamp(re * 90, 5, 100);
+
+  // ── DURABILITY ───────────────────────────────────────────────────────────
+  let du = c.durBase * (1 - t.roughness * 0.38) / Math.max(0.6, kF * 0.70);
+  if (rain) du *= 0.88;
+  du = clamp(du * 110, 5, 100);
+
+  // ── MUD CLEARANCE ────────────────────────────────────────────────────────
+  // Tall knobs + firm compound (wider inter-knob gap) + lower pressure = more clearance
+  let mc = kF * 0.55 + (1 - Math.min(1.35, c.gripMult) / 1.50) * 0.25 + Math.max(0, pF - 1) * 0.10;
+  if (rain) mc = Math.min(1.0, mc * 1.15);
+  mc = clamp(mc * 80, 5, 100);
+
   return {
-    length: pl * 1000,        // mm
-    width:  pw * 1000,        // mm
-    area:   A * 1e4 * cov,    // cm² (effective rubber contact)
-    areaGross: A * 1e4,       // cm² total footprint
+    Traction:   Math.round(tr),
+    Cornering:  Math.round(co),
+    Braking:    Math.round(br),
+    Efficiency: Math.round(re),
+    Durability: Math.round(du),
+    "Mud Clear":Math.round(mc),
   };
 }
 
-/* ═══════════════════════════════════════════════
-   VERTICAL STIFFNESS ESTIMATE
-   Simplified: kz ≈ p * A_footprint / deflection_constant
-═══════════════════════════════════════════════ */
-function vertStiff(p_psi, fz, sz, nomW, rimW) {
-  const sf  = SF[sz] * (effWidth(nomW, rimW) / 2.35);
-  const pn  = p_psi / 30;
-  // Empirical: stiffer at higher pressure
-  const kz  = (58 + 12 * (pn - 1)) * sf;  // N/mm
-  return kz;
+// Trail-specific weighting for the single overall score
+const WEIGHTS = {
+  rocky:      { Traction:0.30, Cornering:0.20, Braking:0.30, Efficiency:0.05, Durability:0.10, "Mud Clear":0.05 },
+  dirt:       { Traction:0.28, Cornering:0.20, Braking:0.22, Efficiency:0.15, Durability:0.10, "Mud Clear":0.05 },
+  mud:        { Traction:0.18, Cornering:0.12, Braking:0.15, Efficiency:0.05, Durability:0.10, "Mud Clear":0.40 },
+  slick_rock: { Traction:0.35, Cornering:0.25, Braking:0.30, Efficiency:0.05, Durability:0.04, "Mud Clear":0.01 },
+};
+
+function overallScore(scores, trail) {
+  const w = WEIGHTS[trail];
+  return Math.round(Object.entries(scores).reduce((s, [k, v]) => s + v * (w[k] || 0), 0));
 }
 
-/* ═══════════════════════════════════════════════
-   PEAK SEARCH
-═══════════════════════════════════════════════ */
-function findPeak(fz, p_psi, sz, nomW, rimW, kn, gamma) {
-  let best = 0, bestA = 0;
-  for (let a = 0; a <= 25; a += 0.2) {
-    const v = pFy(a, fz, p_psi, sz, nomW, rimW, kn, gamma).Fy;
-    if (v > best) { best = v; bestA = a; }
-  }
-  return { peak: best, alpha: bestA };
+function verdict(score) {
+  if (score >= 72) return { label: "OPTIMAL",     color: "#22c55e" };
+  if (score >= 58) return { label: "ADEQUATE",    color: "#84cc16" };
+  if (score >= 44) return { label: "COMPROMISED", color: "#f59e0b" };
+  return               { label: "POOR CHOICE", color: "#ef4444" };
 }
 
-/* ═══════════════════════════════════════════════
-   CHART INIT
-═══════════════════════════════════════════════ */
-let chFy, chMz, chPS;
-
-const AA = [];
-for (let a = -20; a <= 20; a += 0.4) AA.push(a);
-
-const PSI_VALS   = [20, 25, 30, 35, 40];
-const PSI_COLORS = ['#5baaf0','#12c4e8','#f57c14','#4ef08a','#f04e6c'];
-
-Chart.defaults.color      = '#7b87a0';
-Chart.defaults.borderColor= '#252c3f';
-Chart.defaults.font.family= "'IBM Plex Mono'";
-Chart.defaults.font.size  = 9;
-
-function axOpt(title) {
-  return {
-    grid:  { color:'rgba(37,44,63,.7)' },
-    ticks: { color:'#7b87a0', maxTicksLimit:7 },
-    title: { display:true, text:title, color:'#7b87a0', font:{family:"'IBM Plex Mono'",size:8} },
-    border:{ color:'#252c3f' },
-  };
+function scoreColor(v) {
+  if (v >= 70) return "#22c55e";
+  if (v >= 45) return "#f59e0b";
+  return "#ef4444";
 }
 
-function mkChart(id, datasets, xT, yT) {
-  return new Chart(document.getElementById(id).getContext('2d'), {
-    type:'line', data:{ datasets },
-    options:{
-      responsive:true, maintainAspectRatio:false, animation:{duration:220},
-      plugins:{ legend:{ labels:{ font:{size:9}, color:'#7b87a0', boxWidth:10, padding:7 }}},
-      scales:{ x:{...axOpt(xT), type:'linear'}, y:{...axOpt(yT)} },
-    },
-  });
-}
-
-function initCharts() {
-  chFy = mkChart('cFy',
-    [
-      { label:'Fy — current',   data:[], borderColor:'#f57c14', borderWidth:2.5, pointRadius:0, tension:.4 },
-      { label:'Fy — slick ref', data:[], borderColor:'rgba(18,196,232,.5)', borderWidth:1.5, borderDash:[5,4], pointRadius:0, tension:.4 },
-    ], 'Slip Angle α (°)', 'Lateral Force Fy (N)');
-
-  chMz = mkChart('cMz',
-    [
-      { label:'Mz — current',   data:[], borderColor:'#4ef08a', borderWidth:2.5, pointRadius:0, tension:.4 },
-      { label:'Mz — slick ref', data:[], borderColor:'rgba(78,240,138,.4)', borderWidth:1.5, borderDash:[5,4], pointRadius:0, tension:.4 },
-    ], 'Slip Angle α (°)', 'Self-Aligning Moment Mz (N·m)');
-
-  chPS = mkChart('cPS',
-    PSI_VALS.map((pp, i) => ({
-      label: pp+' psi', data: [],
-      borderColor: PSI_COLORS[i], borderWidth: 1.5, pointRadius: 0, tension:.4,
-    })), 'Slip Angle α (°)', 'Lateral Force Fy (N)');
-}
-
-/* ═══════════════════════════════════════════════
-   MAIN UPDATE
-═══════════════════════════════════════════════ */
-function update() {
-  const { sz, w, rimW, kn, p, fz, gamma } = S;
-
-  // Fy chart
-  chFy.data.datasets[0].data = AA.map(a => ({ x:a, y: pFy(a,fz,p,sz,w,rimW,kn,gamma).Fy }));
-  chFy.data.datasets[1].data = AA.map(a => ({ x:a, y: pFy(a,fz,p,sz,w,rimW,0,gamma).Fy }));
-  chFy.data.datasets[0].label = 'Fy — '+KNB[kn].label;
-  chFy.update();
-
-  // Mz chart
-  chMz.data.datasets[0].data = AA.map(a => ({ x:a, y: fbMz(a,fz,p,sz,w,rimW,kn).Mz }));
-  chMz.data.datasets[1].data = AA.map(a => ({ x:a, y: fbMz(a,fz,p,sz,w,rimW,0).Mz }));
-  chMz.data.datasets[0].label = 'Mz — '+KNB[kn].label;
-  chMz.update();
-
-  // Pressure sensitivity
-  PSI_VALS.forEach((pp, i) => {
-    chPS.data.datasets[i].data = AA.map(a => ({ x:a, y: pFy(a,fz,pp,sz,w,rimW,kn,gamma).Fy }));
-    const isCur = Math.abs(pp - p) < 3;
-    chPS.data.datasets[i].borderWidth = isCur ? 3 : 1.2;
-    chPS.data.datasets[i].borderColor = isCur ? '#f57c14' : PSI_COLORS[i];
-  });
-  chPS.update();
-
-  // Pacejka coefficients
-  const r = pFy(0.001, fz, p, sz, w, rimW, kn, gamma);
-  document.getElementById('cB').textContent   = r.B.toFixed(3);
-  document.getElementById('cC').textContent   = r.C.toFixed(3);
-  document.getElementById('cD').textContent   = Math.round(r.D);
-  document.getElementById('cE').textContent   = r.E.toFixed(3);
-  document.getElementById('cBCD').textContent = Math.round(r.BCD);
-
-  // FastBike coefficients
-  const mr = fbMz(0.001, fz, p, sz, w, rimW, kn);
-  document.getElementById('ft0').textContent = mr.t0.toFixed(4);
-  document.getElementById('fBt').textContent = mr.Bt.toFixed(2);
-  document.getElementById('fc0').textContent = mr.c0.toFixed(4);
-  document.getElementById('fc1').textContent = mr.c1.toFixed(4);
-
-  const { peak:pkFy, alpha:pkA } = findPeak(fz, p, sz, w, rimW, kn, gamma);
-  document.getElementById('cAP').textContent = pkA.toFixed(1)+'°';
-
-  // Stats
-  const pt = patch(fz, p, sz, w, rimW, kn);
-  const wEff = effWidth(w, rimW);
-  const cs   = r.BCD * Math.PI / 180;
-  const kz   = vertStiff(p, fz, sz, w, rimW);
-  const pkMz = Math.abs(fbMz(pkA * 0.55, fz, p, sz, w, rimW, kn).Mz);
-
-  document.getElementById('sEW').textContent  = wEff.toFixed(2)+'"';
-  document.getElementById('sA').textContent   = pt.area.toFixed(1)+' cm²';
-  document.getElementById('sPLW').textContent = pt.length.toFixed(0)+'×'+pt.width.toFixed(0)+' mm';
-  document.getElementById('sFy').textContent  = Math.round(pkFy)+' N';
-  document.getElementById('sMz').textContent  = pkMz.toFixed(2)+' N·m';
-  document.getElementById('sMu').textContent  = r.mu.toFixed(3);
-  document.getElementById('sCS').textContent  = cs.toFixed(1);
-  document.getElementById('sKz').textContent  = kz.toFixed(0)+' N/mm';
-
-  drawFP(pt);
-}
-
-/* ═══════════════════════════════════════════════
-   FOOTPRINT CANVAS  — fixed mm scale
-   FIXED_SCALE_PX = 1.8 px per mm
-   This makes load changes visually apparent:
-   200N → ~37×26 mm → 67×47 px (small)
-   500N → ~59×41 mm → 106×74 px (medium)
-   1000N → ~90×54 mm → 162×97 px (large)
-═══════════════════════════════════════════════ */
-const FIXED_SCALE = 1.80; // px per mm
-
-function rrect(ctx, x, y, w, h, r) {
-  r = Math.min(r, w/2, h/2);
-  ctx.beginPath();
-  ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y);
-  ctx.arcTo(x+w,y,     x+w,y+r,   r);
-  ctx.lineTo(x+w, y+h-r);
-  ctx.arcTo(x+w,y+h,   x+w-r,y+h, r);
-  ctx.lineTo(x+r, y+h);
-  ctx.arcTo(x,y+h,     x,y+h-r,   r);
-  ctx.lineTo(x, y+r);
-  ctx.arcTo(x,y,       x+r,y,     r);
-  ctx.closePath();
-}
-
-function drawFP(pt) {
-  const cv   = document.getElementById('cFP');
-  const wrap = cv.parentElement;
-  const cW   = Math.max(200, wrap.clientWidth  - 8);
-  const cH   = Math.max(150, wrap.clientHeight - 8);
-  cv.width = cW; cv.height = cH;
-  const ctx = cv.getContext('2d');
-
-  ctx.fillStyle = '#0b0d12';
-  ctx.fillRect(0, 0, cW, cH);
-
-  // grid
-  ctx.strokeStyle = 'rgba(37,44,63,.5)';
-  ctx.lineWidth = 1;
-  for (let x=0;x<cW;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,cH);ctx.stroke();}
-  for (let y=0;y<cH;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke();}
-
-  // fixed scale — patch grows/shrinks visibly with load
-  const pxL = pt.length * FIXED_SCALE;  // px height (travel direction = vertical)
-  const pxW = pt.width  * FIXED_SCALE;  // px width
-
-  const camberOffset = S.gamma * 1.8;
-  const cx = cW / 2 + camberOffset;
-  const cy = cH / 2;
-
-  // crosshair
-  ctx.setLineDash([4,4]);
-  ctx.strokeStyle = 'rgba(37,44,63,.85)';
-  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,cH); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(cW,cy); ctx.stroke();
-  ctx.setLineDash([]);
-
-  const x0 = cx - pxW/2;
-  const y0 = cy - pxL/2;
-  const cr = Math.min(pxW, pxL) * 0.20;
-
-  // glow shadow
-  ctx.shadowColor = 'rgba(245,124,20,.22)'; ctx.shadowBlur = 18;
-  ctx.fillStyle = '#181e2e';
-  rrect(ctx, x0, y0, pxW, pxL, cr);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // border
-  ctx.strokeStyle = 'rgba(245,124,20,.82)'; ctx.lineWidth = 2;
-  rrect(ctx, x0, y0, pxW, pxL, cr);
-  ctx.stroke();
-
-  // tread pattern by knob level
-  drawTread(ctx, cx, cy, pxW, pxL, x0, y0, cr, S.kn);
-
-  // scale reference bar (10 mm)
-  const tenPx = 10 * FIXED_SCALE;
-  const bx = 12, by = cH - 18;
-  ctx.fillStyle = 'rgba(18,196,232,.7)';
-  ctx.fillRect(bx, by, tenPx, 3);
-  ctx.font = '8px IBM Plex Mono'; ctx.textAlign = 'left';
-  ctx.fillText('10 mm', bx, by-3);
-
-  // dimension labels
-  ctx.font = '9px IBM Plex Mono'; ctx.fillStyle = 'rgba(18,196,232,.85)'; ctx.textAlign = 'center';
-  // width arrow
-  const ay = y0 + pxL + 13;
-  ctx.beginPath(); ctx.moveTo(x0,ay); ctx.lineTo(x0+pxW,ay);
-  ctx.strokeStyle='rgba(18,196,232,.55)'; ctx.lineWidth=1; ctx.stroke();
-  ctx.fillText(pt.width.toFixed(0)+' mm', cx, ay+11);
-  // length label (rotated)
-  const ax = x0 + pxW + 15;
-  ctx.beginPath(); ctx.moveTo(ax,y0); ctx.lineTo(ax,y0+pxL); ctx.stroke();
-  ctx.save(); ctx.translate(ax+10, cy); ctx.rotate(Math.PI/2);
-  ctx.fillText(pt.length.toFixed(0)+' mm', 0, 0); ctx.restore();
-  // area
-  ctx.fillStyle = 'rgba(245,124,20,.7)';
-  ctx.font = '9px IBM Plex Mono';
-  ctx.fillText(pt.area.toFixed(1)+' cm²', cx, cy+4);
-  // knob label
-  ctx.fillStyle = 'rgba(78,240,138,.6)'; ctx.font = '8px IBM Plex Mono';
-  ctx.textAlign = 'right';
-  ctx.fillText('Knob L'+S.kn+' — '+KNB[S.kn].label, cW-8, cH-8);
-}
-
-function drawTread(ctx, cx, cy, pxW, pxL, x0, y0, cr, kn) {
-  if (kn === 0) {
-    // Slick: two longitudinal grooves
-    ctx.strokeStyle = 'rgba(18,196,232,.35)'; ctx.lineWidth = Math.max(1, pxW*0.05);
-    ctx.setLineDash([]);
-    [-0.28, 0.28].forEach(ox => {
-      ctx.beginPath(); ctx.moveTo(cx+ox*pxW, y0+3); ctx.lineTo(cx+ox*pxW, y0+pxL-3); ctx.stroke();
-    });
-    // Horizontal sipes
-    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(18,196,232,.2)';
-    for (let yi = y0+pxL*0.15; yi < y0+pxL*0.88; yi += pxL*0.1) {
-      ctx.beginPath(); ctx.moveTo(x0+4,yi); ctx.lineTo(x0+pxW-4,yi); ctx.stroke();
-    }
-    return;
-  }
-
-  // Knob geometry parameters by level
-  const cfg = [
-    null, // 0 handled above
-    { cols:3, rows:5, kw:0.11, kh:0.09, offset:0.25 },  // 1: XC small tight
-    { cols:3, rows:5, kw:0.14, kh:0.12, offset:0.30 },  // 2: Trail medium
-    { cols:3, rows:4, kw:0.17, kh:0.16, offset:0.30 },  // 3: Enduro large sparse
-  ][kn];
-
-  const kw   = pxW * cfg.kw;
-  const kh   = pxL * cfg.kh;
-  const cols = cfg.cols;
-  const rows = cfg.rows;
-  const gapX = (pxW * 0.78 - kw * cols) / (cols - 1);
-  const gapY = (pxL * 0.78 - kh * rows) / (rows - 1);
-  const ox   = cx - (kw * cols + gapX * (cols-1)) / 2;
-  const oy   = cy - (kh * rows + gapY * (rows-1)) / 2;
-
-  ctx.fillStyle   = kn===3 ? 'rgba(245,124,20,.72)' : kn===2 ? 'rgba(245,124,20,.68)' : 'rgba(245,124,20,.62)';
-  ctx.strokeStyle = 'rgba(245,124,20,.9)'; ctx.lineWidth = 0.5;
-
-  for (let r=0; r<rows; r++) {
-    const yo = oy + r*(kh+gapY);
-    const offX = (r%2) ? gapX*cfg.offset : 0;
-    for (let c=0; c<cols; c++) {
-      const xo = ox + c*(kw+gapX) + offX;
-      // clip check
-      const nx = (xo+kw/2-cx)/(pxW/2);
-      const ny = (yo+kh/2-cy)/(pxL/2);
-      if (Math.abs(nx)>0.85 || Math.abs(ny)>0.85) continue;
-      rrect(ctx, xo, yo, kw, kh, kn>=2 ? 2 : 1.5);
-      ctx.fill(); ctx.stroke();
-    }
-  }
-
-  // Side knobs for level 3
-  if (kn === 3) {
-    ctx.fillStyle = 'rgba(245,124,20,.55)';
-    const sk_h = kh * 0.9, sk_w = kw * 0.8;
-    for (let side of [-1, 1]) {
-      const sx = cx + side * (pxW*0.40);
-      for (let r=0; r<3; r++) {
-        const sy = cy - pxL*0.25 + r * pxL*0.25;
-        const nx = (sx+sk_w/2-cx)/(pxW/2);
-        const ny = (sy+sk_h/2-cy)/(pxL/2);
-        if (Math.abs(nx)>0.88||Math.abs(ny)>0.88) continue;
-        rrect(ctx, sx-sk_w/2, sy, sk_w, sk_h, 2);
-        ctx.fill(); ctx.stroke();
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTACT PATCH VISUALIZER
+// Oval size driven by pressure (width) and weight (height). Knob dot grid fills
+// the patch area; density varies by compound (soft = tighter pattern).
+// ─────────────────────────────────────────────────────────────────────────────
+function ContactPatch({ pressure, weight, compound }) {
+  const c = COMPOUNDS[compound];
+  const pF = 1.30 - ((pressure - 18) / 17) * 0.60;
+  const wF = 0.80 + (weight / 250) * 0.40;
+  const W = Math.round(28 + (pF - 0.70) * 58);
+  const H = Math.round(38 + wF * 22);
+  const cx = 55, cy = 55;
+  const spacing = compound === "soft" ? 9 : compound === "medium" ? 12 : 16;
+  const knobs = [];
+  for (let x = cx - W / 2 + spacing / 2; x < cx + W / 2; x += spacing) {
+    for (let y = cy - H / 2 + spacing / 2; y < cy + H / 2; y += spacing) {
+      if (Math.pow((x - cx) / (W / 2), 2) + Math.pow((y - cy) / (H / 2), 2) <= 0.88) {
+        knobs.push({ x, y });
       }
     }
   }
+  return (
+    <div style={{ textAlign: "center", flexShrink: 0 }}>
+      <svg width="110" height="115" viewBox="0 0 110 115">
+        <ellipse cx={cx} cy={cy} rx={W / 2} ry={H / 2} fill="#0f1218" stroke={c.color} strokeWidth={1.5} />
+        {knobs.map((k, i) => (
+          <rect key={i} x={k.x - 2} y={k.y - 3} width={4} height={5} rx={1} fill={c.color} opacity={0.65} />
+        ))}
+        <text x={cx} y={108} textAnchor="middle" fill="#374151" fontSize={7.5} fontFamily="Share Tech Mono">
+          {W}×{H} px proxy
+        </text>
+      </svg>
+      <div style={{ fontSize: 8, color: "#475569", letterSpacing: "0.12em", textTransform: "uppercase", marginTop: -2 }}>Contact Patch</div>
+    </div>
+  );
 }
 
-/* ═══════════════════════════════════════════════
-   EVENT HANDLERS
-═══════════════════════════════════════════════ */
-function setSz(v, el) {
-  S.sz = v;
-  document.querySelectorAll('.sz-btn').forEach(b => b.classList.remove('act'));
-  el.classList.add('act');
-  update();
-}
-function setKn(v, el) {
-  S.kn = v;
-  document.querySelectorAll('.kn-btn').forEach(b => b.classList.remove('act'));
-  el.classList.add('act');
-  update();
-}
-function onW(el)   { S.w    = +el.value; document.getElementById('vW').textContent   = (+el.value).toFixed(2)+'"'; update(); }
-function onRim(el) { S.rimW = +el.value; document.getElementById('vRim').textContent = el.value+' mm'; update(); }
-function onP(el)   { S.p    = +el.value; document.getElementById('vP').textContent   = el.value+' psi'; update(); }
-function onFz(el)  { S.fz   = +el.value; document.getElementById('vFz').textContent  = el.value+' N'; update(); }
-function onG(el)   {
-  S.gamma = +el.value;
-  document.getElementById('vG').textContent = (S.gamma>=0?'+':'')+S.gamma+'°';
-  update();
+// ─────────────────────────────────────────────────────────────────────────────
+// SEMICIRCULAR GAUGE — SVG arc, value 0–100
+// ─────────────────────────────────────────────────────────────────────────────
+function Gauge({ value, color, size = 84 }) {
+  const r = size * 0.40;
+  const cx = size / 2, cy = size * 0.54;
+  const circ = Math.PI * r;
+  const offset = circ * (1 - value / 100);
+  return (
+    <svg width={size} height={size * 0.60} viewBox={`0 0 ${size} ${size * 0.60}`}>
+      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+        fill="none" stroke="#1e2535" strokeWidth={size * 0.09} strokeLinecap="round" />
+      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+        fill="none" stroke={color} strokeWidth={size * 0.09} strokeLinecap="round"
+        strokeDasharray={circ} strokeDashoffset={offset}
+        style={{ transition: "stroke-dashoffset 0.6s cubic-bezier(.34,1.56,.64,1)", filter: `drop-shadow(0 0 5px ${color}99)` }} />
+      <text x={cx} y={cy - size * 0.02} textAnchor="middle" fill={color}
+        fontSize={size * 0.28} fontFamily="Share Tech Mono" fontWeight="bold">{value}</text>
+    </svg>
+  );
 }
 
-/* ═══════════════════════════════════════════════
-   BOOT + RESIZE
-═══════════════════════════════════════════════ */
-window.addEventListener('load', () => { initCharts(); update(); });
+// ─── SHARED UI ───────────────────────────────────────────────────────────────
+function Panel({ title, children, style = {} }) {
+  return (
+    <div style={{ background: "#111318", border: "1px solid #1e2535", borderRadius: 8, padding: "13px 15px", ...style }}>
+      {title && (
+        <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: "0.28em", textTransform: "uppercase", color: "#f59e0b", marginBottom: 10, display: "flex", alignItems: "center", gap: 7 }}>
+          <div style={{ width: 12, height: 1, background: "#f59e0b", flexShrink: 0 }} />
+          {title}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
 
-let _rt;
-window.addEventListener('resize', () => {
-  clearTimeout(_rt);
-  _rt = setTimeout(() => {
-    const pt = patch(S.fz, S.p, S.sz, S.w, S.rimW, S.kn);
-    drawFP(pt);
-  }, 100);
-});
-</script>
-</body>
-</html>
+function RangeSlider({ label, value, min, max, step, unit, onChange }) {
+  return (
+    <div style={{ marginBottom: 11 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+        <span style={{ fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b" }}>{label}</span>
+        <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: "#f59e0b" }}>{value} {unit}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))} style={{ width: "100%" }} />
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, color: "#2d3748", marginTop: 1 }}>
+        <span>{min}</span><span>{max} {unit}</span>
+      </div>
+    </div>
+  );
+}
+
+// Custom recharts tooltip
+const DarkTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: "#0f1117", border: "1px solid #1e2535", borderRadius: 4, padding: "7px 10px", fontFamily: "Share Tech Mono", fontSize: 10, color: "#e2e8f0" }}>
+      <div style={{ color: "#64748b", marginBottom: 4 }}>{label}</div>
+      {payload.map(p => (
+        <div key={p.dataKey} style={{ color: p.color }}>{p.dataKey}: <strong>{p.value}</strong></div>
+      ))}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+export default function TreadSimulator() {
+  const [trail,    setTrail]    = useState("dirt");
+  const [compound, setCompound] = useState("medium");
+  const [pressure, setPressure] = useState(26);
+  const [knob,     setKnob]     = useState(1);
+  const [weight,   setWeight]   = useState(175);
+  const [speed,    setSpeed]    = useState(12);
+  const [rain,     setRain]     = useState(false);
+  const [flash,    setFlash]    = useState(false);
+
+  const params  = { trail, compound, pressure, knob, weight, speed, rain };
+  const scores  = calcScores(params);
+  const overall = overallScore(scores, trail);
+  const verd    = verdict(overall);
+  const t       = TRAILS[trail];
+  const c       = COMPOUNDS[compound];
+
+  // Derived coefficients shown in table
+  const pF        = 1.30 - ((pressure - 18) / 17) * 0.60;
+  const wF        = 0.80 + (weight / 250) * 0.40;
+  const kF        = KNOB_H[knob];
+  const spdBase   = Math.min(0.28, (speed - 5) / 100);
+  const spdPenalty = spdBase * c.vibDamp;  // compound-aware
+  const muEff     = t.baseFriction * c.gripMult * pF; // effective grip coeff
+
+  // Radar data
+  const radarData = Object.entries(scores).map(([subject, value]) => ({ subject, value, fullMark: 100 }));
+
+  // Compound comparison (4 key metrics, all 3 compounds, current trail/conditions)
+  const COMPARE_KEYS = ["Traction", "Cornering", "Braking", "Efficiency"];
+  const comparisonData = COMPARE_KEYS.map(metric => ({
+    metric: metric.slice(0, 4),
+    Soft:   calcScores({ ...params, compound: "soft"   })[metric],
+    Medium: calcScores({ ...params, compound: "medium" })[metric],
+    Hard:   calcScores({ ...params, compound: "hard"   })[metric],
+  }));
+
+  // Pressure sensitivity curve (18–35 PSI)
+  const pressureCurve = Array.from({ length: 18 }, (_, i) => {
+    const psi = 18 + i;
+    const s = calcScores({ ...params, pressure: psi });
+    return { psi, Traction: s.Traction, Efficiency: s.Efficiency };
+  });
+
+  // Speed degradation curve (5–30 mph)
+  const speedCurve = Array.from({ length: 26 }, (_, i) => {
+    const spd = 5 + i;
+    const s = calcScores({ ...params, speed: spd });
+    return { mph: spd, Traction: s.Traction, Braking: s.Braking };
+  });
+
+  // Rain handler
+  const toggleRain = () => { setFlash(true); setTimeout(() => setFlash(false), 500); setRain(r => !r); };
+
+  // Rain drops for animation
+  const rainDrops = Array.from({ length: 45 }, (_, i) => ({
+    left: `${(i * 2.22) % 100}%`,
+    delay: `${(i * 0.058) % 1}s`,
+    dur: `${0.42 + (i % 6) * 0.085}s`,
+    h: `${9 + (i % 4) * 5}px`,
+    op: 0.30 + (i % 3) * 0.15,
+  }));
+
+  return (
+    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", background: "#090b10", minHeight: "100vh", color: "#e2e8f0", position: "relative", overflow: "hidden" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;}
+        @keyframes fall{0%{transform:translateY(-30px);opacity:0}8%{opacity:1}88%{opacity:1}100%{transform:translateY(105vh);opacity:0}}
+        @keyframes flash-in{0%{opacity:.55}100%{opacity:0}}
+        @keyframes pulse-b{0%,100%{box-shadow:0 0 10px rgba(96,165,250,.25)}50%{box-shadow:0 0 28px rgba(96,165,250,.65)}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+        .sbar{transition:width .55s cubic-bezier(.34,1.56,.64,1);}
+        input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:#1e2535;outline:none;cursor:pointer;}
+        input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#f59e0b;cursor:pointer;box-shadow:0 0 8px rgba(245,158,11,.55);}
+        .tcard{cursor:pointer;border:1px solid #1e2535;background:#111318;border-radius:6px;padding:8px 10px;transition:all .18s;user-select:none;}
+        .tcard:hover{border-color:#f59e0b44;transform:translateY(-1px);}
+        .tcard.on{border-color:#f59e0b;background:rgba(245,158,11,.07);}
+        .pill{cursor:pointer;padding:7px 0;border:1px solid #1e2535;background:#111318;color:#64748b;font-family:inherit;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-radius:4px;transition:all .18s;width:100%;}
+        .pill:hover{border-color:#f59e0b44;color:#e2e8f0;}
+        .pill.on{background:#f59e0b;border-color:#f59e0b;color:#090b10;}
+        .cbtn{cursor:pointer;padding:9px 5px;border:1px solid #1e2535;background:#111318;color:#64748b;font-family:inherit;border-radius:5px;transition:all .18s;width:100%;text-align:center;}
+        .cbtn:hover{transform:translateY(-1px);}
+        .cbtn.on{border-width:2px;}
+        .gbg{position:fixed;inset:0;background-image:linear-gradient(rgba(245,158,11,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,.022) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;}
+      `}</style>
+
+      <div className="gbg" />
+
+      {/* Flash overlay on rain toggle */}
+      {flash && <div style={{ position: "fixed", inset: 0, background: "rgba(96,165,250,.12)", animation: "flash-in .5s ease-out forwards", pointerEvents: "none", zIndex: 5 }} />}
+
+      {/* Animated rain */}
+      {rain && (
+        <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 3 }}>
+          {rainDrops.map((d, i) => (
+            <div key={i} style={{ position: "absolute", top: 0, left: d.left, width: "1.5px", height: d.h, background: `rgba(147,197,253,${d.op})`, animation: `fall ${d.dur} ${d.delay} linear infinite`, borderRadius: 2 }} />
+          ))}
+        </div>
+      )}
+
+      <div style={{ position: "relative", zIndex: 4, padding: "16px 20px 28px", maxWidth: 1120, margin: "0 auto" }}>
+
+        {/* ── HEADER ── */}
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+          <div>
+            <div style={{ fontSize: 8.5, letterSpacing: "0.35em", color: "#374151", textTransform: "uppercase", marginBottom: 2 }}>Maxxis // AI Tread Lab — Simplified Physics Model v2</div>
+            <h1 style={{ fontSize: 25, fontWeight: 900, letterSpacing: "0.025em", color: "#f1f5f9", lineHeight: 1 }}>TREAD PERFORMANCE SIMULATOR</h1>
+          </div>
+
+          {/* Active config badge + gauge */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ background: "#111318", border: "1px solid #1e2535", borderRadius: 8, padding: "9px 16px", display: "flex", gap: 18 }}>
+              {[["TRAIL", t.name.toUpperCase(), t.color], ["COMPOUND", c.name.toUpperCase(), c.color], ["KNOB", ["LOW","MED","HIGH"][knob], "#94a3b8"], ["RAIN", rain ? "ON" : "OFF", rain ? "#60a5fa" : "#374151"]].map(([k, v, col]) => (
+                <div key={k} style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 7.5, letterSpacing: "0.15em", color: "#374151" }}>{k}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: col, letterSpacing: "0.06em", marginTop: 1 }}>{v}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <Gauge value={overall} color={verd.color} size={86} />
+              <div style={{ fontSize: 8.5, letterSpacing: "0.18em", color: verd.color, marginTop: -2 }}>{verd.label}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── MAIN GRID ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "295px 1fr", gap: 13, alignItems: "start" }}>
+
+          {/* ── LEFT: CONTROLS ─────────────────────────────────────────── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+
+            {/* Trail Condition */}
+            <Panel title="Trail Condition">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+                {Object.entries(TRAILS).map(([key, tr]) => (
+                  <div key={key} className={`tcard ${trail === key ? "on" : ""}`} onClick={() => setTrail(key)}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                      <span style={{ fontSize: 17 }}>{tr.icon}</span>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 12, color: trail === key ? "#f59e0b" : "#cbd5e1", textTransform: "uppercase", letterSpacing: "0.05em" }}>{tr.name}</div>
+                        <div style={{ fontSize: 8, color: "#475569", marginTop: 1 }}>μ = {tr.baseFriction}</div>
+                      </div>
+                    </div>
+                    {trail === key && <div style={{ height: 2, borderRadius: 1, marginTop: 6, background: `linear-gradient(90deg,${tr.color},transparent)` }} />}
+                  </div>
+                ))}
+              </div>
+            </Panel>
+
+            {/* Rubber Compound */}
+            <Panel title="Rubber Compound">
+              <div style={{ display: "flex", gap: 7 }}>
+                {Object.entries(COMPOUNDS).map(([key, cp]) => (
+                  <button key={key} className={`cbtn ${compound === key ? "on" : ""}`} onClick={() => setCompound(key)}
+                    style={compound === key ? { borderColor: cp.color, background: `${cp.color}14`, color: cp.color } : {}}>
+                    <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>{cp.name}</div>
+                    <div style={{ fontSize: 8, marginTop: 2, opacity: 0.7 }}>{cp.sub}</div>
+                    <div style={{ height: 2, borderRadius: 1, background: compound === key ? cp.color : "#1e2535", marginTop: 6 }} />
+                  </button>
+                ))}
+              </div>
+            </Panel>
+
+            {/* Knob Profile */}
+            <Panel title="Knob Profile">
+              <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+                {["Low", "Medium", "High"].map((label, i) => (
+                  <button key={i} className={`pill ${knob === i ? "on" : ""}`} onClick={() => setKnob(i)}>{label}</button>
+                ))}
+              </div>
+              {/* Visual knob height bars */}
+              <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                {[0, 1, 2].map(i => {
+                  const h = [10, 16, 23][i];
+                  const active = knob === i;
+                  return (
+                    <div key={i} onClick={() => setKnob(i)} style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                      <div style={{ width: 13, height: h, background: active ? "#f59e0b" : "#1e2535", border: `1px solid ${active ? "#f59e0b" : "#374151"}`, borderRadius: 2, transition: "all .2s", boxShadow: active ? "0 0 8px #f59e0b66" : "none" }} />
+                      <span style={{ fontSize: 7.5, color: active ? "#f59e0b" : "#374151", letterSpacing: ".05em" }}>{["Lo", "Md", "Hi"][i]}</span>
+                    </div>
+                  );
+                })}
+                <div style={{ marginLeft: 6, fontSize: 8.5, color: "#475569", lineHeight: 1.65 }}>
+                  Low → hard/fast<br />High → mud/soft
+                </div>
+              </div>
+            </Panel>
+
+            {/* Sliders */}
+            <Panel title="Rider & Conditions">
+              <RangeSlider label="Tire Pressure" value={pressure} min={18} max={35} step={1}  unit="PSI" onChange={setPressure} />
+              <RangeSlider label="Rider Weight"  value={weight}   min={120} max={250} step={5}  unit="lbs" onChange={setWeight} />
+              <RangeSlider label="Trail Speed"   value={speed}    min={5}   max={30}  step={1}  unit="mph" onChange={setSpeed} />
+            </Panel>
+
+            {/* Rain Toggle */}
+            <button onClick={toggleRain}
+              style={{ cursor: "pointer", padding: "10px 14px", border: `2px solid ${rain ? "#60a5fa" : "#1e2535"}`, background: rain ? "rgba(96,165,250,.09)" : "#111318", color: rain ? "#93c5fd" : "#475569", fontFamily: "'Barlow Condensed',sans-serif", fontSize: 13.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", borderRadius: 7, display: "flex", alignItems: "center", gap: 9, transition: "all .3s", width: "100%", ...(rain ? { animation: "pulse-b 1.8s ease-in-out infinite" } : {}) }}>
+              <span style={{ fontSize: 19 }}>🌧️</span>
+              <div>
+                <div>{rain ? "Rain Active" : "Add Rain / Moisture"}</div>
+                <div style={{ fontSize: 7.5, letterSpacing: "0.05em", marginTop: 1, opacity: 0.65 }}>
+                  {rain ? "Moisture coefficients applied" : "Apply moisture sensitivity factors"}
+                </div>
+              </div>
+              {rain && <div style={{ marginLeft: "auto", width: 7, height: 7, borderRadius: "50%", background: "#60a5fa", boxShadow: "0 0 10px #60a5fa", animation: "blink 1.2s ease-in-out infinite" }} />}
+            </button>
+
+            {/* Coefficients + Contact Patch */}
+            <Panel title="Active Coefficients">
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <ContactPatch pressure={pressure} weight={weight} compound={compound} />
+                <div style={{ flex: 1 }}>
+                  {/* ── KEY FIX NOTES:
+                      "μ effective" = baseFriction × gripMult × pF
+                        → changes with BOTH terrain AND compound selection
+                      "spd penalty" = spdBase × vibDamp
+                        → now changes with compound (soft damps vibration, hard amplifies)
+                  */}
+                  {[
+                    ["μ terrain",   t.baseFriction.toFixed(2), "#64748b"],
+                    ["grip mult",   c.gripMult.toFixed(2),     c.color],
+                    ["μ effective", muEff.toFixed(3),          "#f59e0b"],
+                    ["psi factor",  pF.toFixed(3),             "#64748b"],
+                    ["weight fac.", wF.toFixed(3),             "#64748b"],
+                    ["knob fac.",   kF.toFixed(2),             "#64748b"],
+                    ["vib damp.",   c.vibDamp.toFixed(2),      c.color],
+                    ["spd penalty", spdPenalty.toFixed(3),     c.color],
+                    ["wet adapt.",  c.wetAdapt.toFixed(2),     rain ? "#60a5fa" : "#64748b"],
+                  ].map(([label, val, col]) => (
+                    <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontFamily: "'Share Tech Mono',monospace", borderBottom: "1px solid #161a24", paddingBottom: 2.5, marginBottom: 2.5 }}>
+                      <span style={{ color: "#374151" }}>{label}</span>
+                      <span style={{ color: col }}>{val}</span>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 7.5, color: "#1e2535", marginTop: 5, lineHeight: 1.5, color: "#374151" }}>
+                    Amber = compound-dependent<br />Blue = active when rain on
+                  </div>
+                </div>
+              </div>
+            </Panel>
+
+          </div>{/* end left */}
+
+          {/* ── RIGHT: OUTPUTS ─────────────────────────────────────────── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+            {/* Row A: Radar + Score Bars */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+
+              <Panel title="Performance Radar">
+                <div style={{ height: 205 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarData} margin={{ top: 8, right: 22, bottom: 8, left: 22 }}>
+                      <PolarGrid stroke="#1e2535" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: "#94a3b8", fontSize: 9, fontFamily: "Barlow Condensed", fontWeight: 600 }} />
+                      <Radar dataKey="value" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.14} strokeWidth={2} dot={{ fill: "#f59e0b", r: 3 }} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Panel>
+
+              <Panel title="Metric Scores">
+                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  {Object.entries(scores).map(([key, val]) => {
+                    const col = scoreColor(val);
+                    return (
+                      <div key={key}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3 }}>
+                          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#475569" }}>{key}</span>
+                          <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 17, color: col, textShadow: `0 0 8px ${col}55` }}>{val}</span>
+                        </div>
+                        <div style={{ height: 4, background: "#181c27", borderRadius: 2, overflow: "hidden" }}>
+                          <div className="sbar" style={{ width: `${val}%`, height: "100%", background: `linear-gradient(90deg,${col}55,${col})`, borderRadius: 2 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Panel>
+            </div>
+
+            {/* Row B: Compound Comparison */}
+            <Panel title={`Compound Comparison — ${t.name}${rain ? " (Wet)" : " (Dry)"} · Active compound highlighted`}>
+              <div style={{ height: 155 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={comparisonData} margin={{ top: 4, right: 12, bottom: 0, left: -22 }} barCategoryGap="22%">
+                    <CartesianGrid stroke="#161a24" vertical={false} />
+                    <XAxis dataKey="metric" tick={{ fill: "#64748b", fontSize: 9, fontFamily: "Barlow Condensed", fontWeight: 700 }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 100]} tick={{ fill: "#2d3748", fontSize: 8, fontFamily: "Share Tech Mono" }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<DarkTooltip />} cursor={{ fill: "rgba(255,255,255,.025)" }} />
+                    <Bar dataKey="Soft"   fill="#f87171" radius={[3,3,0,0]} opacity={compound === "soft"   ? 1 : 0.30} />
+                    <Bar dataKey="Medium" fill="#f59e0b" radius={[3,3,0,0]} opacity={compound === "medium" ? 1 : 0.30} />
+                    <Bar dataKey="Hard"   fill="#60a5fa" radius={[3,3,0,0]} opacity={compound === "hard"   ? 1 : 0.30} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 6 }}>
+                {[["Soft","#f87171"],["Medium","#f59e0b"],["Hard","#60a5fa"]].map(([name, col]) => (
+                  <div key={name} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 8.5, color: compound === name.toLowerCase() ? col : "#374151", fontWeight: compound === name.toLowerCase() ? 700 : 400, letterSpacing: "0.1em", textTransform: "uppercase", transition: "color .2s" }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 1, background: col, opacity: compound === name.toLowerCase() ? 1 : 0.3, transition: "opacity .2s" }} />
+                    {name}
+                  </div>
+                ))}
+              </div>
+            </Panel>
+
+            {/* Row C: Pressure curve + Speed curve */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+
+              <Panel title="Traction &amp; Efficiency vs PSI">
+                <div style={{ height: 128 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={pressureCurve} margin={{ top: 4, right: 10, bottom: 0, left: -26 }}>
+                      <CartesianGrid stroke="#161a24" />
+                      <XAxis dataKey="psi" tick={{ fill: "#2d3748", fontSize: 8, fontFamily: "Share Tech Mono" }} axisLine={false} tickLine={false} tickCount={5} />
+                      <YAxis domain={[0, 100]} tick={{ fill: "#2d3748", fontSize: 8, fontFamily: "Share Tech Mono" }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<DarkTooltip />} />
+                      <ReferenceLine x={pressure} stroke="#f59e0b44" strokeDasharray="3 3" label={{ value: `${pressure}`, fill: "#f59e0b", fontSize: 8, fontFamily: "Share Tech Mono" }} />
+                      <Line type="monotone" dataKey="Traction"   stroke="#22c55e" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="Efficiency" stroke="#60a5fa" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ display: "flex", gap: 12, marginTop: 5, justifyContent: "center" }}>
+                  {[["Traction","#22c55e","solid"],["Efficiency","#60a5fa","dashed"]].map(([n,col,type]) => (
+                    <div key={n} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 8, color: col, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      <svg width={14} height={4}><line x1={0} y1={2} x2={14} y2={2} stroke={col} strokeWidth={1.5} strokeDasharray={type==="dashed"?"4 2":"none"} /></svg>
+                      {n}
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+
+              <Panel title="Grip Degradation vs Speed">
+                <div style={{ height: 128 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={speedCurve} margin={{ top: 4, right: 10, bottom: 0, left: -26 }}>
+                      <CartesianGrid stroke="#161a24" />
+                      <XAxis dataKey="mph" tick={{ fill: "#2d3748", fontSize: 8, fontFamily: "Share Tech Mono" }} axisLine={false} tickLine={false} tickCount={6} />
+                      <YAxis domain={[0, 100]} tick={{ fill: "#2d3748", fontSize: 8, fontFamily: "Share Tech Mono" }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<DarkTooltip />} />
+                      <ReferenceLine x={speed} stroke="#f59e0b44" strokeDasharray="3 3" label={{ value: `${speed}`, fill: "#f59e0b", fontSize: 8, fontFamily: "Share Tech Mono" }} />
+                      <Line type="monotone" dataKey="Traction" stroke="#22c55e" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="Braking"  stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ display: "flex", gap: 12, marginTop: 5, justifyContent: "center" }}>
+                  {[["Traction","#22c55e","solid"],["Braking","#ef4444","dashed"]].map(([n,col,type]) => (
+                    <div key={n} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 8, color: col, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      <svg width={14} height={4}><line x1={0} y1={2} x2={14} y2={2} stroke={col} strokeWidth={1.5} strokeDasharray={type==="dashed"?"4 2":"none"} /></svg>
+                      {n}
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            </div>
+
+          </div>{/* end right */}
+        </div>
+      </div>
+    </div>
+  );
+}
