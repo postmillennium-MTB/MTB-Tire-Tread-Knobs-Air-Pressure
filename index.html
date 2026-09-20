@@ -60,13 +60,19 @@ body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--body);f
 .cmp-legend i.dB{border-top-color:var(--cmpB);border-top-style:dashed;}
 .tb-hint{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-left:auto;}
 
+/* first-visit nudge banner (localStorage-remembered, dismissible) */
+.nudge-banner{display:flex;align-items:center;gap:10px;font-size:12px;padding:7px 18px;background:var(--accentD);border-bottom:1px solid var(--accentG);color:var(--txt);flex-shrink:0;}
+.nudge-banner b{color:var(--accent);}
+.nudge-close{margin-left:auto;background:none;border:none;color:var(--txt2);font-size:16px;line-height:1;cursor:pointer;padding:0 4px;}
+.nudge-close:hover{color:var(--txt);}
+
 /* preset compare strip */
 .preset-strip{display:none;padding:8px 18px;background:var(--surf1);border-bottom:1px solid var(--border);gap:8px;align-items:center;flex-wrap:wrap;flex-shrink:0;}
 .preset-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;margin-right:4px;}
 .preset-chip{position:relative;display:inline-flex;flex-direction:column;gap:1px;font-family:var(--body);padding:6px 12px;border:1px solid var(--border2);border-radius:5px;background:var(--surf2);color:var(--txt2);cursor:pointer;transition:all .13s;min-width:118px;}
 .preset-chip:hover{border-color:var(--accent);color:var(--txt);}
 .preset-chip .pc-name{font-size:12.5px;font-weight:600;letter-spacing:.02em;}
-.preset-chip .pc-sub{font-family:var(--mono);font-size:8.5px;color:var(--txt3);}
+.preset-chip .pc-sub{font-family:var(--body);font-size:9.5px;color:var(--txt3);font-style:italic;}
 .preset-chip.selA{border-color:var(--cmpA);background:var(--accentD);color:var(--txt);}
 .preset-chip.selB{border-color:var(--cmpB);background:rgba(0,114,178,.14);color:var(--txt);}
 .preset-chip .pc-slot{position:absolute;top:-8px;right:-8px;width:18px;height:18px;border-radius:50%;font-family:var(--mono);font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;}
@@ -86,6 +92,10 @@ body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--body);f
 .cmp-summary b{font-weight:700;}
 .cmp-summary .sA b{color:var(--cmpA);}
 .cmp-summary .sB b{color:var(--cmpB);}
+
+/* plain-language narrative bar */
+.narrative{font-family:var(--body);font-size:13px;line-height:1.4;color:var(--txt);background:var(--surf1);border-bottom:1px solid var(--border);padding:8px 18px;flex-shrink:0;}
+.narrative b{color:var(--accent);font-weight:700;}
 
 /* LAYOUT */
 .layout{display:grid;grid-template-columns:272px 1fr;flex:1;min-height:0;}
@@ -154,6 +164,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .ph{display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0;gap:8px;}
 .pt{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
 .ps{font-family:var(--mono);font-size:8.5px;color:var(--txt2);margin-top:1px;}
+.plain{font-family:var(--body);font-size:11px;line-height:1.35;color:var(--txt);opacity:.82;margin-top:2px;}
 .pfig{font-family:var(--mono);font-size:9px;color:var(--txt3);border:1px solid var(--border);padding:2px 5px;border-radius:2px;flex-shrink:0;}
 .cw{position:relative;flex:1;min-height:0;}
 .cw canvas{width:100%!important;height:100%!important;}
@@ -163,6 +174,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
    MOBILE / RESPONSIVE
    Below 900px: everything stacks & the page scrolls.
    Charts get an explicit height so Chart.js can size them.
+   The footprint panel (most intuitive visual for a
+   non-engineer) is pulled to the front of the stack.
 ═══════════════════════════════════════════════ */
 @media (max-width:900px){
   html,body{height:auto;overflow:visible;}
@@ -173,6 +186,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   .topbar{padding:9px 14px;gap:10px 12px;}
   .tb-hint{display:none;}
   .switch-lbl,.tb-btn{font-size:13px;}
+  .nudge-banner{padding:8px 14px;font-size:12px;}
+  .narrative{padding:8px 14px;font-size:12.5px;}
   .cmp-summary{padding:6px 14px;gap:6px 16px;}
   .preset-strip{padding:9px 14px;}
   .preset-chip{flex:1;min-width:calc(50% - 8px);}
@@ -181,10 +196,11 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   .layout{display:block;flex:none;min-height:0;}
   .sb{overflow:visible;border-right:none;border-bottom:1px solid var(--border);gap:20px;padding:16px 14px;}
 
-  /* one chart per row, each with real height */
+  /* one chart per row, each with real height; footprint leads */
   .main{display:block;background:transparent;}
   .panel{border-bottom:1px solid var(--border);padding:14px;}
   .panel + .panel{border-top:none;}
+  .panel-footprint{order:-1;}
   .cw{height:300px;flex:none;}
   .fpw{height:340px;flex:none;}
   .pt{font-size:13px;}
@@ -262,21 +278,16 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   <span class="tb-hint">Edit sliders to shape the active config</span>
 </div>
 
+<!-- FIRST-VISIT NUDGE (dismissible, remembered per browser) -->
+<div class="nudge-banner" id="nudgeBanner" style="display:none;">
+  💡 Try flipping <b>Comparison Mode</b> above to see two tire setups side-by-side.
+  <button class="nudge-close" onclick="dismissNudge()" aria-label="Dismiss">×</button>
+</div>
+
 <!-- PRESET COMPARE STRIP -->
 <div class="preset-strip" id="presetStrip">
   <span class="preset-lbl">Pick two presets</span>
-  <button class="preset-chip" data-preset="dh26"    onclick="pickPreset('dh26')">
-    <span class="pc-slot"></span><span class="pc-name">26″ Downhill</span><span class="pc-sub">Enduro · 2.50″ · 26psi · 800N</span>
-  </button>
-  <button class="preset-chip" data-preset="trail275" onclick="pickPreset('trail275')">
-    <span class="pc-slot"></span><span class="pc-name">27.5″ Trail</span><span class="pc-sub">Trail · 2.40″ · 28psi · 600N</span>
-  </button>
-  <button class="preset-chip" data-preset="xc29"     onclick="pickPreset('xc29')">
-    <span class="pc-slot"></span><span class="pc-name">29″ XC Race</span><span class="pc-sub">XC · 2.25″ · 32psi · 500N</span>
-  </button>
-  <button class="preset-chip" data-preset="mara32"   onclick="pickPreset('mara32')">
-    <span class="pc-slot"></span><span class="pc-name">32″ Marathon</span><span class="pc-sub">Slick · 2.10″ · 38psi · 520N</span>
-  </button>
+  <span id="presetChips" style="display:contents"></span>
   <span class="preset-hint">Editing any slider returns to manual comparison</span>
 </div>
 
@@ -285,6 +296,9 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   <span class="sA">A → <b id="sumA">—</b></span>
   <span class="sB">B → <b id="sumB">—</b></span>
 </div>
+
+<!-- PLAIN-LANGUAGE NARRATIVE -->
+<div class="narrative" id="narrative"></div>
 
 <!-- LAYOUT -->
 <div class="layout">
@@ -297,13 +311,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 
       <div class="ctrl">
         <div class="ctrl-lbl"><span>Wheel Diameter</span></div>
-        <div class="sz-row">
-          <button class="sz-btn" data-sz="26"   onclick="setSz('26')">26"</button>
-          <button class="sz-btn" data-sz="27.5" onclick="setSz('27.5')">27.5"</button>
-          <button class="sz-btn act" data-sz="29" onclick="setSz('29')">29"</button>
-          <button class="sz-btn" data-sz="32"   onclick="setSz('32')" title="Extrapolated beyond paper data">32"*</button>
-        </div>
-        <div class="hint">* 32" extrapolated beyond tested sizes</div>
+        <div class="sz-row" id="szRow"></div>
+        <div class="hint" id="szHint"></div>
       </div>
 
       <div class="ctrl">
@@ -321,12 +330,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 
       <div class="ctrl">
         <div class="ctrl-lbl" style="margin-bottom:3px;"><span>Tread Knob Level</span></div>
-        <div class="kn-row">
-          <button class="kn-btn" data-kn="0" onclick="setKn(0)"><span class="kn-num">0</span><span class="kn-lbl">SLICK</span></button>
-          <button class="kn-btn" data-kn="1" onclick="setKn(1)"><span class="kn-num">1</span><span class="kn-lbl">XC</span></button>
-          <button class="kn-btn act" data-kn="2" onclick="setKn(2)"><span class="kn-num">2</span><span class="kn-lbl">TRAIL</span></button>
-          <button class="kn-btn" data-kn="3" onclick="setKn(3)"><span class="kn-num">3</span><span class="kn-lbl">ENDURO</span></button>
-        </div>
+        <div class="kn-row" id="knRow"></div>
         <div class="hint">Higher knobs: ↓ CS, ↓ μ, ↓ effective contact area</div>
       </div>
     </div>
@@ -348,7 +352,15 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 
       <div class="ctrl">
         <div class="ctrl-lbl"><span>Camber Angle γ</span><span class="ctrl-val" id="vG">0°</span></div>
-        <input type="range" id="sG" min="-25" max="25" step="1" value="0" oninput="onG(this)">
+        <div style="display:flex;align-items:center;gap:9px;">
+          <svg id="camberWheel" width="26" height="26" viewBox="0 0 28 28" style="flex-shrink:0;transition:transform .15s;">
+            <circle cx="14" cy="14" r="12" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+            <circle cx="14" cy="14" r="2" fill="var(--accent)"/>
+            <line x1="14" y1="2" x2="14" y2="7" stroke="var(--accent)" stroke-width="1.4"/>
+            <line x1="14" y1="21" x2="14" y2="26" stroke="var(--accent)" stroke-width="1.4"/>
+          </svg>
+          <input type="range" id="sG" min="-25" max="25" step="1" value="0" oninput="onG(this)" style="flex:1;">
+        </div>
         <div class="sl-ends"><span>−25°</span><span>+25°</span></div>
       </div>
     </div>
@@ -412,8 +424,12 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <div class="panel">
       <div class="ph">
         <div><div class="pt">Lateral Force F<sub>y</sub> vs Slip Angle α</div>
-        <div class="ps" id="psFy">Pacejka Magic Formula — current vs slick ref overlay</div></div>
-        <div class="pfig">FIG. 6</div>
+        <div class="ps" id="psFy">Pacejka Magic Formula — current vs slick ref overlay</div>
+        <div class="plain" id="plainFy"></div></div>
+        <div style="display:flex;gap:6px;align-items:flex-start;">
+          <div class="pfig fp-delta" id="fyDelta" style="display:none;"></div>
+          <div class="pfig">FIG. 6</div>
+        </div>
       </div>
       <div class="cw"><canvas id="cFy"></canvas></div>
     </div>
@@ -421,16 +437,21 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <div class="panel">
       <div class="ph">
         <div><div class="pt">Self-Aligning Moment M<sub>z</sub> vs Slip Angle α</div>
-        <div class="ps" id="psMz">FastBike polynomial + pneumatic trail</div></div>
-        <div class="pfig">FIG. 6</div>
+        <div class="ps" id="psMz">FastBike polynomial + pneumatic trail</div>
+        <div class="plain" id="plainMz"></div></div>
+        <div style="display:flex;gap:6px;align-items:flex-start;">
+          <div class="pfig fp-delta" id="mzDelta" style="display:none;"></div>
+          <div class="pfig">FIG. 6</div>
+        </div>
       </div>
       <div class="cw"><canvas id="cMz"></canvas></div>
     </div>
 
-    <div class="panel">
+    <div class="panel panel-footprint">
       <div class="ph">
         <div><div class="pt">Contact Patch Footprint</div>
-        <div class="ps" id="psFP">Pressure, load &amp; rim-width dependent — fixed mm scale</div></div>
+        <div class="ps" id="psFP">Pressure, load &amp; rim-width dependent — fixed mm scale</div>
+        <div class="plain" id="plainFP"></div></div>
         <div class="pfig fp-delta" id="fpFig">FIG. 5</div>
       </div>
       <div class="fpw"><canvas id="cFP"></canvas></div>
@@ -445,7 +466,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <div class="panel">
       <div class="ph">
         <div><div class="pt" id="ptPS">Pressure Sensitivity — F<sub>y</sub> Envelope</div>
-        <div class="ps" id="psPS">Fy at p = 20·25·30·35·40 psi — current highlighted</div></div>
+        <div class="ps" id="psPS">Fy at p = 20·25·30·35·40 psi — current highlighted</div>
+        <div class="plain" id="plainPS"></div></div>
         <div class="pfig">FIG. 3</div>
       </div>
       <div class="cw"><canvas id="cPS"></canvas></div>
@@ -537,12 +559,15 @@ function cur(){ return active === 'A' ? configA : configB; }
 /* ═══════════════════════════════════════════════
    PRESET WHEELS — one per size, distinct character.
    Each is a complete config the physics can evaluate.
+   `blurb` is the one-line plain-English takeaway shown
+   on the chip; the full spec still shows as a tooltip
+   (derived from the same fields — see presetSubtext()).
 ═══════════════════════════════════════════════ */
 const PRESETS = {
-  dh26:     { name:'26″ Downhill', sz:'26',   w:2.50, rimW:30, kn:3, p:26, fz:800, gamma:0 },
-  trail275: { name:'27.5″ Trail',  sz:'27.5', w:2.40, rimW:30, kn:2, p:28, fz:600, gamma:0 },
-  xc29:     { name:'29″ XC Race',  sz:'29',   w:2.25, rimW:25, kn:1, p:32, fz:500, gamma:0 },
-  mara32:   { name:'32″ Marathon', sz:'32',   w:2.10, rimW:24, kn:0, p:38, fz:520, gamma:0 },
+  dh26:     { name:'26″ Downhill', sz:'26',   w:2.50, rimW:30, kn:3, p:26, fz:800, gamma:0, blurb:'built for impact absorption' },
+  trail275: { name:'27.5″ Trail',  sz:'27.5', w:2.40, rimW:30, kn:2, p:28, fz:600, gamma:0, blurb:'built for all-round grip' },
+  xc29:     { name:'29″ XC Race',  sz:'29',   w:2.25, rimW:25, kn:1, p:32, fz:500, gamma:0, blurb:'built for rolling speed' },
+  mara32:   { name:'32″ Marathon', sz:'32',   w:2.10, rimW:24, kn:0, p:38, fz:520, gamma:0, blurb:'built for all-day efficiency' },
 };
 let presetMode = false;
 let presetSel  = [];          // up to 2 preset keys; [0]→A, [1]→B
@@ -553,6 +578,9 @@ function cfgFromPreset(key){
   const p = PRESETS[key];
   return { sz:p.sz, w:p.w, rimW:p.rimW, kn:p.kn, p:p.p, fz:p.fz, gamma:p.gamma };
 }
+function presetSubtext(p){
+  return KNB[p.kn].label + ' · ' + p.w.toFixed(2) + '″ · ' + p.p + 'psi · ' + p.fz + 'N';
+}
 
 const KNB = {
   0:{ mu_f:1.00, cs_f:1.00, cov:1.00, peakShift:0.0,  label:'Slick'  },
@@ -562,19 +590,102 @@ const KNB = {
 };
 
 /* ═══════════════════════════════════════════════
-   SIZE FACTORS — extrapolated for 32"
+   WHEEL SIZES — size factor + UI metadata.
+   Buttons in the sidebar are generated from this
+   array (see renderSizeButtons), so adding a size
+   is a one-line edit here, not a separate HTML edit.
 ═══════════════════════════════════════════════ */
-const SF = {'26':0.94,'27.5':1.00,'29':1.06,'32':1.14};
+const WHEEL_SIZES = [
+  { key:'26',   label:'26"',   sf:0.94, extrapolated:false },
+  { key:'27.5', label:'27.5"', sf:1.00, extrapolated:false },
+  { key:'29',   label:'29"',   sf:1.06, extrapolated:false },
+  { key:'32',   label:'32"*',  sf:1.14, extrapolated:true  },
+];
+const SF = Object.fromEntries(WHEEL_SIZES.map(s => [s.key, s.sf]));
+
+/* ═══════════════════════════════════════════════
+   TUNING CONSTANTS
+   Everything below is a fitted or assumed constant
+   that shapes the physics or the drawing math. Named
+   here (rather than left as bare literals inside the
+   formulas) so each has one place to look up its
+   meaning, units, and source before changing it.
+═══════════════════════════════════════════════ */
+
+/* Pacejka / FastBike regression coefficients — fitted
+   constants from Dressel & Sadauckas 2020 (Appl. Sci.
+   10, 3156; full citation in the page footer). These
+   ARE the paper: changing them changes what model is
+   being simulated, not just how it's drawn. */
+const PACEJKA_COEFF = {
+  muBase:              0.94,   // peak friction coeff. at 30 psi, size-normalized, slick tread
+  muPressureSens:     -0.028,  // μ change per unit of (p/30 - 1): overinflation reduces peak grip
+  cBase:               1.44,   // Pacejka shape factor C, baseline
+  cSizeGain:           0.03,   // C increase per unit of size factor (larger wheels → peakier curve)
+  cPressureSens:      -0.007,  // C sensitivity to pressure ratio
+  bcdLoadBase:         2.9,    // cornering-stiffness slope, load-independent term
+  bcdLoadGain:         0.72,   // cornering-stiffness gain per kN of normal load
+  bcdPressureSens:     0.19,   // cornering-stiffness sensitivity to pressure ratio
+  eBase:              -1.22,   // Pacejka curvature factor E, baseline
+  ePressureSens:      -0.38,   // E sensitivity to pressure ratio
+  camberThrust:        0.045,  // horizontal slip-angle shift (SHy) per radian of camber
+  trailBase:           0.038,  // pneumatic trail t0 at zero slip, size-normalized
+  trailPressureSens:  -0.07,   // trail shortens as pressure rises
+  trailBt:             3.6,    // FastBike Bt baseline (trail decay rate vs slip angle)
+  trailBtPressureSens: 0.4,    // Bt sensitivity to pressure ratio
+  trailCt:             1.5,    // FastBike Ct shape constant
+  mzC1Coeff:          -0.0025, // FastBike Mz residual, linear-term coefficient
+  mzC2Coeff:           0.00009,// FastBike Mz residual, quadratic-term coefficient
+  vertStiffBase:       58,     // vertical stiffness at 30 psi, N/mm, size-normalized
+  vertStiffPressureGain: 12,   // stiffness gain per unit pressure ratio
+};
+
+/* Unit conversions */
+const PSI_TO_PASCAL = 6894.76;
+const IN_TO_M        = 0.0254;
+
+/* Contact-patch geometry (pneumatic contact theory: A = Fz / p) */
+const PATCH_ASPECT_BASE      = 1.35; // baseline footprint length/width ratio
+const PATCH_ASPECT_SIZE_GAIN = 0.08; // aspect increase per unit of size factor
+const PATCH_MAX_WIDTH_FRAC   = 0.90; // footprint can't exceed 90% of effective tire width
+const PATCH_MIN_ASPECT       = 0.60; // floor on length/width ratio so patch math never blows up
+
+/* Rim-width → tire-shape approximations (industry rules of thumb, not from the paper) */
+const RIM_WIDTH_TO_TIRE_WIDTH_GAIN = 0.016; // in of effective tire width per mm of rim width beyond 25mm
+const RIM_WIDTH_TO_ASPECT_GAIN     = -0.007;// aspect-ratio change per mm of rim width beyond 25mm
+
+/* Peak-search sweep — used to locate peak Fy across slip angle */
+const ALPHA_SEARCH_MAX  = 25;  // degrees — covers the full practical slip-angle range
+const ALPHA_SEARCH_STEP = 0.2; // degrees — resolution of the peak search
+
+/* Footprint canvas drawing */
+const FIXED_SCALE       = 1.80; // px per mm — single-config footprint canvas scale
+const FP_COMPARE_GAP_MM = 8;    // gap between A/B patches at full "side by side"
+const FP_MIN_SCALE      = 0.55; // px/mm floor so very large combined patches stay visible
+
+// ─── END OF DATA ────────────────────────────────────────────────────────────
+// Everything above is data: themes, presets, knob levels, wheel sizes, and
+// every tuning constant the physics or drawing code uses. Everything below
+// is logic. To extend the tool: add a wheel size to WHEEL_SIZES, a knob
+// level to KNB, a preset to PRESETS, or a color theme to THEMES + THEME_ORDER
+// — the sidebar buttons, preset chips, and chart colors are all generated
+// from these, not hand-written elsewhere.
+
+/* ═══════════════════════════════════════════════
+   SIZE FACTOR (shared by all three physics functions
+   below — previously computed independently in each,
+   which let them drift out of sync if only one changed)
+═══════════════════════════════════════════════ */
+function sizeFactor(sz, nomW, rimW){
+  return SF[sz] * (effWidth(nomW, rimW) / 2.35);
+}
 
 /* ═══════════════════════════════════════════════
    RIM WIDTH → EFFECTIVE TIRE WIDTH
-   Industry approximation: ~0.4mm tire width gain
-   per 1mm increase in internal rim width beyond 25mm
 ═══════════════════════════════════════════════ */
 function effWidth(nomW_in, rimW_mm) {
   const delta = rimW_mm - 25;
-  // ~0.016 in per mm rim width change (nominal for MTB)
-  return nomW_in + delta * 0.016;
+  return nomW_in + delta * RIM_WIDTH_TO_TIRE_WIDTH_GAIN;
 }
 
 /* ═══════════════════════════════════════════════
@@ -584,29 +695,29 @@ function effWidth(nomW_in, rimW_mm) {
 ═══════════════════════════════════════════════ */
 function rimAspect(rimW_mm) {
   const delta = rimW_mm - 25;
-  return delta * (-0.007); // reduces aspect (L/W) by 0.007 per mm
+  return delta * RIM_WIDTH_TO_ASPECT_GAIN;
 }
 
 /* ═══════════════════════════════════════════════
    PACEJKA LATERAL FORCE
 ═══════════════════════════════════════════════ */
 function pFy(a_deg, fz, p_psi, sz, nomW, rimW, kn, gamma_deg) {
+  const K    = PACEJKA_COEFF;
   const a    = a_deg  * Math.PI / 180;
   const g    = gamma_deg * Math.PI / 180;
-  const wEff = effWidth(nomW, rimW);
-  const sf   = SF[sz] * (wEff / 2.35);
+  const sf   = sizeFactor(sz, nomW, rimW);
   const pn   = p_psi / 30;
   const k    = KNB[kn];
   const fn   = fz / 1000; // kN
 
-  const mu   = 0.94 * sf * k.mu_f * (1 - 0.028 * (pn - 1));
+  const mu   = K.muBase * sf * k.mu_f * (1 + K.muPressureSens * (pn - 1));
   const D    = mu * fz;
-  const C    = 1.44 + 0.03 * sf - 0.007 * (pn - 1);
-  const BCD  = (2.9 + 0.72 * fn) * sf * k.cs_f * (1 + 0.19 * (pn - 1)) * 1000;
+  const C    = K.cBase + K.cSizeGain * sf + K.cPressureSens * (pn - 1);
+  const BCD  = (K.bcdLoadBase + K.bcdLoadGain * fn) * sf * k.cs_f * (1 + K.bcdPressureSens * (pn - 1)) * 1000;
   const B    = BCD / (C * D);
-  const E    = -1.22 - 0.38 * (pn - 1);
+  const E    = K.eBase + K.ePressureSens * (pn - 1);
   // Camber thrust: horizontal shift proportional to gamma
-  const SHy  = 0.045 * g;
+  const SHy  = K.camberThrust * g;
 
   const x    = a + SHy;
   const Fy   = D * Math.sin(C * Math.atan(B * x - E * (B * x - Math.atan(B * x))));
@@ -617,7 +728,8 @@ function pFy(a_deg, fz, p_psi, sz, nomW, rimW, kn, gamma_deg) {
    FASTBIKE Mz  (pneumatic trail + polynomial residual)
 ═══════════════════════════════════════════════ */
 function fbMz(a_deg, fz, p_psi, sz, nomW, rimW, kn) {
-  const sf   = SF[sz] * (effWidth(nomW, rimW) / 2.35);
+  const K    = PACEJKA_COEFF;
+  const sf   = sizeFactor(sz, nomW, rimW);
   const pn   = p_psi / 30;
   const k    = KNB[kn];
   const fn   = fz / 1000;
@@ -626,15 +738,15 @@ function fbMz(a_deg, fz, p_psi, sz, nomW, rimW, kn) {
   const { Fy } = pFy(a_deg, fz, p_psi, sz, nomW, rimW, kn, 0);
 
   // Pneumatic trail at zero slip — knobs shorten trail
-  const t0   = 0.038 * sf * k.cs_f * (1 - 0.07 * (pn - 1));
-  const Bt   = 3.6 + 0.4 * (pn - 1);
-  const Ct   = 1.5;
+  const t0   = K.trailBase * sf * k.cs_f * (1 + K.trailPressureSens * (pn - 1));
+  const Bt   = K.trailBt + K.trailBtPressureSens * (pn - 1);
+  const Ct   = K.trailCt;
   const t    = t0 * Math.cos(Ct * Math.atan(Bt * a_r));
 
   // FastBike polynomial residual
   const c0   = 0;
-  const c1   = -0.0025 * sf * fn * k.cs_f;
-  const c2   =  0.00009 * sf * fn;
+  const c1   = K.mzC1Coeff * sf * fn * k.cs_f;
+  const c2   = K.mzC2Coeff * sf * fn;
   const Mz   = -t * Fy + c0 + c1 * a_deg + c2 * a_deg ** 2;
 
   return { Mz, t0, Bt, c0, c1 };
@@ -648,12 +760,12 @@ function fbMz(a_deg, fz, p_psi, sz, nomW, rimW, kn) {
 ═══════════════════════════════════════════════ */
 function patch(fz, p_psi, sz, nomW, rimW, kn) {
   const sf     = SF[sz];
-  const pPa    = p_psi * 6894.76;
+  const pPa    = p_psi * PSI_TO_PASCAL;
   const wEff   = effWidth(nomW, rimW);
   const A      = fz / pPa;                        // m²
-  const aspect = 1.35 + 0.08 * sf + rimAspect(rimW); // L/W ratio
-  const maxW   = wEff * 0.0254 * 0.90;            // m, physical max width
-  const pw     = Math.min(maxW, Math.sqrt(A / Math.max(0.6, aspect)));
+  const aspect = PATCH_ASPECT_BASE + PATCH_ASPECT_SIZE_GAIN * sf + rimAspect(rimW); // L/W ratio
+  const maxW   = wEff * IN_TO_M * PATCH_MAX_WIDTH_FRAC;   // m, physical max width
+  const pw     = Math.min(maxW, Math.sqrt(A / Math.max(PATCH_MIN_ASPECT, aspect)));
   const pl     = A / pw;
   const cov    = KNB[kn].cov;
   return {
@@ -669,10 +781,10 @@ function patch(fz, p_psi, sz, nomW, rimW, kn) {
    Simplified: kz ≈ p * A_footprint / deflection_constant
 ═══════════════════════════════════════════════ */
 function vertStiff(p_psi, fz, sz, nomW, rimW) {
-  const sf  = SF[sz] * (effWidth(nomW, rimW) / 2.35);
+  const K   = PACEJKA_COEFF;
+  const sf  = sizeFactor(sz, nomW, rimW);
   const pn  = p_psi / 30;
-  // Empirical: stiffer at higher pressure
-  const kz  = (58 + 12 * (pn - 1)) * sf;  // N/mm
+  const kz  = (K.vertStiffBase + K.vertStiffPressureGain * (pn - 1)) * sf;  // N/mm
   return kz;
 }
 
@@ -681,11 +793,19 @@ function vertStiff(p_psi, fz, sz, nomW, rimW) {
 ═══════════════════════════════════════════════ */
 function findPeak(fz, p_psi, sz, nomW, rimW, kn, gamma) {
   let best = 0, bestA = 0;
-  for (let a = 0; a <= 25; a += 0.2) {
+  for (let a = 0; a <= ALPHA_SEARCH_MAX; a += ALPHA_SEARCH_STEP) {
     const v = pFy(a, fz, p_psi, sz, nomW, rimW, kn, gamma).Fy;
     if (v > best) { best = v; bestA = a; }
   }
   return { peak: best, alpha: bestA };
+}
+
+/* Peak |Mz| for a full config object — shared by the
+   readouts panel and the plain-language narrative so
+   both report the exact same number. */
+function peakMzFor(c){
+  const { alpha } = findPeak(c.fz, c.p, c.sz, c.w, c.rimW, c.kn, c.gamma);
+  return Math.abs(fbMz(alpha * 0.55, c.fz, c.p, c.sz, c.w, c.rimW, c.kn).Mz);
 }
 
 /* ═══════════════════════════════════════════════
@@ -745,12 +865,33 @@ const sMzSlick = c => AA.map(a => ({ x:a, y: fbMz(a,c.fz,c.p,c.sz,c.w,c.rimW,0).
 ═══════════════════════════════════════════════ */
 function renderFy(){
   const d = chFy.data.datasets;
+  const fyDelta = document.getElementById('fyDelta');
   if (!compareMode){
     d[0].data = sFyCur(configA);   d[0].borderColor=T.accent;            d[0].borderDash=[];   d[0].borderWidth=2.5; d[0].label='Fy — '+KNB[configA.kn].label;
     d[1].data = sFySlick(configA); d[1].borderColor=hexToRgba(T.sec,.55);d[1].borderDash=[5,4];d[1].borderWidth=1.5; d[1].label='Fy — slick ref';
+    fyDelta.style.display = 'none';
+
+    const rCur   = pFy(0.001, configA.fz, configA.p, configA.sz, configA.w, configA.rimW, configA.kn, configA.gamma);
+    const rSlick = pFy(0.001, configA.fz, configA.p, configA.sz, configA.w, configA.rimW, 0, configA.gamma);
+    const pct = rSlick.mu > 0 ? Math.round((rCur.mu / rSlick.mu) * 100) : 100;
+    document.getElementById('plainFy').textContent =
+      `This tread grips at about ${pct}% of a slick tire's peak — before it starts to slide sideways.`;
   } else {
     d[0].data = sFyCur(configA);   d[0].borderColor=T.cmpA; d[0].borderDash=[];    d[0].borderWidth=2.6; d[0].label='A — '+KNB[configA.kn].label;
     d[1].data = sFyCur(configB);   d[1].borderColor=T.cmpB; d[1].borderDash=[6,4]; d[1].borderWidth=2.6; d[1].label='B — '+KNB[configB.kn].label;
+
+    const pkA = findPeak(configA.fz, configA.p, configA.sz, configA.w, configA.rimW, configA.kn, configA.gamma).peak;
+    const pkB = findPeak(configB.fz, configB.p, configB.sz, configB.w, configB.rimW, configB.kn, configB.gamma).peak;
+    const dPct = pkA > 0 ? ((pkB - pkA) / pkA) * 100 : 0;
+    const sign = dPct >= 0 ? '+' : '−';
+    fyDelta.style.display = 'inline-block';
+    fyDelta.textContent = 'Δpeak ' + sign + Math.abs(dPct).toFixed(1) + '%';
+    fyDelta.title = 'B peak grip vs A (positive = B higher)';
+    fyDelta.style.color = dPct >= 0 ? T.cmpB : T.cmpA;
+    fyDelta.style.borderColor = dPct >= 0 ? T.cmpB : T.cmpA;
+
+    document.getElementById('plainFy').textContent =
+      'Solid = Config A, dashed = Config B — whichever line stays higher longer has more grip before sliding.';
   }
   chFy.update();
   document.getElementById('psFy').textContent = compareMode
@@ -763,12 +904,31 @@ function renderFy(){
 ═══════════════════════════════════════════════ */
 function renderMz(){
   const d = chMz.data.datasets;
+  const mzDelta = document.getElementById('mzDelta');
   if (!compareMode){
     d[0].data = sMzCur(configA);   d[0].borderColor=T.accent;             d[0].borderDash=[];   d[0].borderWidth=2.5; d[0].label='Mz — '+KNB[configA.kn].label;
     d[1].data = sMzSlick(configA); d[1].borderColor=hexToRgba(T.sec,.55); d[1].borderDash=[5,4];d[1].borderWidth=1.5; d[1].label='Mz — slick ref';
+    mzDelta.style.display = 'none';
+
+    const pkMz = peakMzFor(configA);
+    document.getElementById('plainMz').textContent =
+      `Self-centering steering force peaks around ${pkMz.toFixed(1)} N·m — higher means more steering effort in corners.`;
   } else {
     d[0].data = sMzCur(configA);   d[0].borderColor=T.cmpA; d[0].borderDash=[];    d[0].borderWidth=2.6; d[0].label='A — '+KNB[configA.kn].label;
     d[1].data = sMzCur(configB);   d[1].borderColor=T.cmpB; d[1].borderDash=[6,4]; d[1].borderWidth=2.6; d[1].label='B — '+KNB[configB.kn].label;
+
+    const pkA = peakMzFor(configA);
+    const pkB = peakMzFor(configB);
+    const dPct = pkA > 0 ? ((pkB - pkA) / pkA) * 100 : 0;
+    const sign = dPct >= 0 ? '+' : '−';
+    mzDelta.style.display = 'inline-block';
+    mzDelta.textContent = 'Δpeak ' + sign + Math.abs(dPct).toFixed(1) + '%';
+    mzDelta.title = 'B peak self-aligning torque vs A (positive = B higher)';
+    mzDelta.style.color = dPct >= 0 ? T.cmpB : T.cmpA;
+    mzDelta.style.borderColor = dPct >= 0 ? T.cmpB : T.cmpA;
+
+    document.getElementById('plainMz').textContent =
+      'Solid = Config A, dashed = Config B — taller peaks mean heavier, more self-centering steering.';
   }
   chMz.update();
   document.getElementById('psMz').textContent = compareMode
@@ -787,6 +947,7 @@ function renderMz(){
 function renderPS(){
   const ptTitle = document.getElementById('ptPS');
   const psSub   = document.getElementById('psPS');
+  const plainPS = document.getElementById('plainPS');
 
   if (!compareMode){
     chPS.options.scales.x.title.text = 'Slip Angle α (°)';
@@ -804,6 +965,7 @@ function renderPS(){
     });
     ptTitle.innerHTML = 'Pressure Sensitivity — F<sub>y</sub> Envelope';
     psSub.textContent = 'Fy at p = 20·25·30·35·40 psi — current highlighted';
+    plainPS.textContent = `Shows how grip would change if you aired up or down from ${c.p} psi.`;
   } else {
     chPS.options.scales.x.title.text = 'Inflation Pressure (psi)';
     chPS.options.scales.y.title.text = 'Peak Lateral Force Fy (N)';
@@ -816,6 +978,7 @@ function renderPS(){
     ];
     ptTitle.innerHTML = 'Pressure Response — Peak F<sub>y</sub> vs PSI';
     psSub.textContent = 'Peak lateral grip across inflation range — A vs B';
+    plainPS.textContent = "Compares how sensitive each setup's peak grip is to inflation pressure.";
   }
   chPS.update();
 }
@@ -905,8 +1068,6 @@ function drawTread(ctx, cx, cy, pxW, pxL, x0, y0, cr, kn) {
 /* ═══════════════════════════════════════════════
    FOOTPRINT — single config (detailed tread)
 ═══════════════════════════════════════════════ */
-const FIXED_SCALE = 1.80; // px per mm
-
 function drawFP(pt, cfg){
   const cv   = document.getElementById('cFP');
   const wrap = cv.parentElement;
@@ -985,13 +1146,13 @@ function drawFPCompare(ptA, ptB, overlap){
   // Local scale: fit BOTH patches side-by-side (overlap=0, widest case) within the
   // canvas, then keep that scale as they slide together. The 10 mm bar uses the same
   // scale, so measurements stay honest even though it auto-fits.
-  const gapMM  = 8;
+  const gapMM  = FP_COMPARE_GAP_MM;
   const availW = cW - 26;
   const availH = cH - 62;
   const totalW0 = ptA.width + ptB.width + gapMM;
   const maxLen  = Math.max(ptA.length, ptB.length);
   let sc = Math.min(FIXED_SCALE, availW / totalW0, availH / maxLen);
-  sc = Math.max(0.55, sc);
+  sc = Math.max(FP_MIN_SCALE, sc);
 
   const pxWA = ptA.width*sc,  pxLA = ptA.length*sc;
   const pxWB = ptB.width*sc,  pxLB = ptB.length*sc;
@@ -1061,7 +1222,7 @@ function renderReadouts(){
   const wEff = effWidth(c.w, c.rimW);
   const cs   = r.BCD * Math.PI / 180;
   const kz   = vertStiff(c.p, c.fz, c.sz, c.w, c.rimW);
-  const pkMz = Math.abs(fbMz(pkA * 0.55, c.fz, c.p, c.sz, c.w, c.rimW, c.kn).Mz);
+  const pkMz = peakMzFor(c);
 
   document.getElementById('sEW').textContent  = wEff.toFixed(2)+'"';
   document.getElementById('sA').textContent   = pt.area.toFixed(1)+' cm²';
@@ -1079,6 +1240,7 @@ function renderReadouts(){
 function renderFootprint(){
   const fpFig  = document.getElementById('fpFig');
   const fpCtrl = document.getElementById('fpCtrl');
+  const plainFP = document.getElementById('plainFP');
   if (compareMode){
     // show the dial FIRST so the canvas measures its final (reduced) height
     fpCtrl.style.display = 'flex';
@@ -1086,6 +1248,7 @@ function renderFootprint(){
     const ptB = patch(configB.fz, configB.p, configB.sz, configB.w, configB.rimW, configB.kn);
     drawFPCompare(ptA, ptB, fpOverlapPct/100);
     document.getElementById('psFP').textContent = 'A vs B — dial slides between side-by-side and overlaid';
+    plainFP.textContent = 'The bigger patch usually means more overall grip; the shape difference shows how tread choice changes contact.';
     // area % difference (positive → B larger than A), shown top-right
     const dPct = ptA.area > 0 ? ((ptB.area - ptA.area) / ptA.area) * 100 : 0;
     const sign = dPct >= 0 ? '+' : '−';
@@ -1099,9 +1262,29 @@ function renderFootprint(){
     fpFig.title = '';
     fpFig.style.color = '';
     fpFig.style.borderColor = '';
-    drawFP(patch(configA.fz, configA.p, configA.sz, configA.w, configA.rimW, configA.kn), configA);
+    const ptA = patch(configA.fz, configA.p, configA.sz, configA.w, configA.rimW, configA.kn);
+    drawFP(ptA, configA);
     document.getElementById('psFP').textContent = 'Pressure, load & rim-width dependent — fixed mm scale';
+    plainFP.textContent = `This is the actual rubber touching the ground: ${ptA.area.toFixed(1)} cm² at your current pressure and load.`;
   }
+}
+
+/* ═══════════════════════════════════════════════
+   PLAIN-LANGUAGE NARRATIVE (one-sentence summary)
+═══════════════════════════════════════════════ */
+function updateNarrative(){
+  const el = document.getElementById('narrative');
+  if (compareMode){
+    el.innerHTML = `Comparing <b>${nameA || 'Config A'}</b> vs <b>${nameB || 'Config B'}</b> — see the Δ badges on each chart for how they stack up.`;
+    return;
+  }
+  const c = configA;
+  const rCur   = pFy(0.001, c.fz, c.p, c.sz, c.w, c.rimW, c.kn, c.gamma);
+  const rSlick = pFy(0.001, c.fz, c.p, c.sz, c.w, c.rimW, 0, c.gamma);
+  const pct = rSlick.mu > 0 ? Math.round((rCur.mu / rSlick.mu) * 100) : 100;
+  const pt  = patch(c.fz, c.p, c.sz, c.w, c.rimW, c.kn);
+  const pkMz = peakMzFor(c);
+  el.innerHTML = `At <b>${c.p} psi</b> with <b>${KNB[c.kn].label}</b> knobs on a <b>${c.sz}"</b> wheel, this tire grips at about <b>${pct}%</b> of a slick tire's peak, covers a <b>${pt.area.toFixed(1)} cm²</b> contact patch, and its steering self-centers with about <b>${pkMz.toFixed(1)} N·m</b> of force.`;
 }
 
 /* ═══════════════════════════════════════════════
@@ -1114,6 +1297,7 @@ function update(){
   renderReadouts();
   renderFootprint();
   updateSummary();
+  updateNarrative();
 }
 
 /* short human label for a config */
@@ -1135,8 +1319,38 @@ function syncControls(){
   document.getElementById('sP').value   = c.p;    document.getElementById('vP').textContent   = c.p+' psi';
   document.getElementById('sFz').value  = c.fz;   document.getElementById('vFz').textContent  = c.fz+' N';
   document.getElementById('sG').value   = c.gamma;document.getElementById('vG').textContent   = (c.gamma>=0?'+':'')+c.gamma+'°';
+  document.getElementById('camberWheel').style.transform = 'rotate('+c.gamma+'deg)';
   document.querySelectorAll('.sz-btn').forEach(b => b.classList.toggle('act', b.dataset.sz === c.sz));
   document.querySelectorAll('.kn-btn').forEach(b => b.classList.toggle('act', +b.dataset.kn === c.kn));
+}
+
+/* ═══════════════════════════════════════════════
+   REGISTRY-DRIVEN UI GENERATION
+   Wheel-size buttons, knob-level buttons, and preset
+   chips are built from WHEEL_SIZES / KNB / PRESETS at
+   boot instead of being hand-written in the HTML, so
+   adding an entry to any of those is a one-line edit.
+═══════════════════════════════════════════════ */
+function renderSizeButtons(){
+  document.getElementById('szRow').innerHTML = WHEEL_SIZES.map(s =>
+    `<button class="sz-btn" data-sz="${s.key}" onclick="setSz('${s.key}')"${s.extrapolated ? ' title="Extrapolated beyond paper data"' : ''}>${s.label}</button>`
+  ).join('');
+  const extrapolated = WHEEL_SIZES.filter(s => s.extrapolated).map(s => s.label.replace('*',''));
+  document.getElementById('szHint').textContent = extrapolated.length
+    ? `* ${extrapolated.join(', ')} extrapolated beyond tested sizes` : '';
+}
+function renderKnobButtons(){
+  document.getElementById('knRow').innerHTML = Object.keys(KNB).map(k => {
+    const kn = +k;
+    return `<button class="kn-btn" data-kn="${kn}" onclick="setKn(${kn})"><span class="kn-num">${kn}</span><span class="kn-lbl">${KNB[kn].label.toUpperCase()}</span></button>`;
+  }).join('');
+}
+function renderPresetChips(){
+  document.getElementById('presetChips').innerHTML = Object.entries(PRESETS).map(([key,p]) =>
+    `<button class="preset-chip" data-preset="${key}" onclick="pickPreset('${key}')" title="${presetSubtext(p)}">
+      <span class="pc-slot"></span><span class="pc-name">${p.name}</span><span class="pc-sub">${p.blurb}</span>
+    </button>`
+  ).join('');
 }
 
 /* ═══════════════════════════════════════════════
@@ -1148,10 +1362,30 @@ function onW(el){  breakToManual(); cur().w    = +el.value; document.getElementB
 function onRim(el){breakToManual(); cur().rimW = +el.value; document.getElementById('vRim').textContent = el.value+' mm'; update(); }
 function onP(el){  breakToManual(); cur().p    = +el.value; document.getElementById('vP').textContent   = el.value+' psi'; update(); }
 function onFz(el){ breakToManual(); cur().fz   = +el.value; document.getElementById('vFz').textContent  = el.value+' N'; update(); }
-function onG(el){  breakToManual(); cur().gamma= +el.value; document.getElementById('vG').textContent   = (cur().gamma>=0?'+':'')+cur().gamma+'°'; update(); }
+function onG(el){
+  breakToManual();
+  cur().gamma = +el.value;
+  document.getElementById('vG').textContent = (cur().gamma>=0?'+':'')+cur().gamma+'°';
+  document.getElementById('camberWheel').style.transform = 'rotate('+cur().gamma+'deg)';
+  update();
+}
 
 /* footprint overlap dial — view control only, does not break preset mode */
 function onOverlap(el){ fpOverlapPct = +el.value; document.getElementById('fpOverlapVal').textContent = el.value+'%'; renderFootprint(); }
+
+/* ═══════════════════════════════════════════════
+   FIRST-VISIT NUDGE (localStorage-remembered)
+   Wrapped in try/catch: this tool is designed to be
+   iframed (PMR site, Pinkbike embeds), and storage
+   access can throw in a sandboxed cross-origin frame.
+   The tool must work fine even if it always throws.
+═══════════════════════════════════════════════ */
+function safeLSGet(key){ try { return localStorage.getItem(key); } catch(e) { return null; } }
+function safeLSSet(key, val){ try { localStorage.setItem(key, val); } catch(e) {} }
+function dismissNudge(){
+  document.getElementById('nudgeBanner').style.display = 'none';
+  safeLSSet('tireSimSeenCompareNudge', '1');
+}
 
 /* ═══════════════════════════════════════════════
    COMPARISON MODE + TABS
@@ -1166,6 +1400,7 @@ function setCompareUI(on){
 }
 function toggleCompare(on){
   compareMode = on;
+  if (on) dismissNudge();
   if (!on){                       // leaving comparison also leaves preset mode
     presetMode = false;
     document.getElementById('presetToggle').checked = false;
@@ -1183,6 +1418,7 @@ function toggleCompare(on){
 /* ─── PRESET COMPARE ─── */
 function togglePresetMode(on){
   presetMode = on;
+  if (on) dismissNudge();
   document.getElementById('presetStrip').style.display = on ? 'flex' : 'none';
   if (on){
     compareMode = true;
@@ -1287,10 +1523,16 @@ function cycleTheme(){
 window.addEventListener('load', () => {
   T = THEMES[currentTheme];
   applyThemeVars();
+  renderSizeButtons();
+  renderKnobButtons();
+  renderPresetChips();
   initCharts();
   applyThemeCharts();
   syncControls();
   update();
+  if (!safeLSGet('tireSimSeenCompareNudge')) {
+    document.getElementById('nudgeBanner').style.display = 'flex';
+  }
 });
 
 let _rt;
