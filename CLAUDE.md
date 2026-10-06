@@ -21,7 +21,7 @@ Mobile is not a judgment call per app. Every change that touches layout, CSS, ma
 runs the script below and passes **before it is pushed**.
 
 ```
-node scripts/mobile-check.mjs index.html --cycle '#themeBtn' --cycles 3
+node scripts/mobile-check.mjs index.html --cycle '#themeBtn' --cycles 2
 ```
 
 It loads the page at 360×740, 390×844, 430×932 and 844×390 (landscape) with touch emulation,
@@ -40,7 +40,7 @@ Needs Playwright installed **globally** (`npm i -g playwright`) — the repo has
 Offline sandboxes: set `CHARTJS_LOCAL=/path/to/chart.umd.js` and `CHROMIUM_PATH=/path/to/chromium`.
 Screenshots land in `mobile-check-out/` (one per viewport × scheme) — look at them; the script
 cannot judge whether a layout is good, only whether it is broken.
-A new color scheme is covered automatically by raising `--cycles`.
+A new color scheme is covered automatically by raising `--cycles` (one cycle per scheme in `THEME_ORDER`).
 
 ### Rules the check enforces (and the ones it cannot)
 
@@ -79,15 +79,20 @@ Enforced by the script: the table above. **Still the author's job** — the scri
 
 ## Color schemes
 
-Win98 (grey) has a stone texture: ONE textured surface (`.window`), every panel above it transparent so there are no seams, buttons/fields/bevels flat. The tile (`--w-tex`, 320px) is cut from the photo `image.png` by `scripts/make-stone-tile.py` (a photo is made seamless there with a two-pass cross-fade; `--procedural` makes a generated stone instead). Keep `SIZE` equal to the CSS `background-size` and `MEAN_GREY` equal to `--w-face`; `MIN_LEVEL` keeps dark text above 4.5:1. The tile is embedded as a data URI so the tool stays one file — `image.png` is only the source and is not loaded at runtime.
-
 `THEMES` registry in the script; the Theme button cycles `THEME_ORDER`
-(`win98`, `win98g`, `contrast`). Win00 (`trail`) and Frost (`frost`) stay defined but are out of
+(`win98`, `contrast`). Win00 (`trail`) and Frost (`frost`) stay defined but are out of
 the cycle. The Win98 look is scoped under `html.w98`; the dark schemes must keep rendering as
-they did before it. Mind the specificity trap in the standard: the default theme's CSS block goes first. See README for how to re-enable a scheme.
+they did before it. Mind the specificity trap in the standard: the default theme's CSS block goes first. See README for how to re-enable a scheme. The darker stone-textured "Win98 (grey)" was removed (git history: commit `2e03c03`).
 
 ## Model integrity
 
-The physics constants (`PACEJKA_COEFF`) *are* the paper (Dressel & Sadauckas 2020). Do not change
-them to "improve" a chart. Nominal width is limited to 1.9–2.6": the model scales grip linearly
-with width, so anything outside the tested range is extrapolation and must be flagged as such.
+The tool **has no physics model of its own.** It shows the paper's numbers (`applsci-10-03156-v2.pdf`, in the repo) and nothing else. Read the PDF before making any claim about what "the paper says".
+
+- All data lives in the `PAPER DATA` block of `index.html` (`CONFIGS`). Every value carries a tier — **printed** (typed in the paper: Fig. 3 baseline coefficients, Fig. 5 patch sizes), **read** (digitized from Fig. 16/17, ±3–5 %), **estimated** (`t_w` of non-baseline tires, from Fig. 6d/12d), **assumed** (reused outside the condition measured). The UI states the tier next to the numbers; keep it honest.
+- Method, calibrations and scripts: `scripts/paper-data/`. To correct a value, edit the table there, re-run `gen_configs.py`, paste the block, and re-check it against the printed numbers.
+- What the paper tested (offer nothing else): 29×2.3″ knobby & bald, 29×2.5″ file-tread & bald (25 mm rim; 22 mm for the knobby/file-tread at 10 and 25 psi), 29×3.0″ knobby (45 mm), 27.5×2.8″ knobby (38 mm), 26×4.0″ knobby (86 mm). One normal load, **418 N**. Nominal pressures 25 / 20 / 20 / 15 psi; the 29×2.3″ was swept 10–50 psi, the others measured at two pressures.
+- The paper's FastBike equation is `M_ZTW(φ)=m_r·φ·N·(1+t_w·φ²)` in **camber** (Eq. 5). Pacejka's Magic Formula is fitted to lateral force (slip and camber) and self-aligning moment (slip).
+- Slip was measured only to about ±2° (±1° on the 26×4″): the peak and curvature are not identified. Draw only the straight-line stiffness inside the measured range (and only as far as it agrees with the fitted curve: see `LINEAR_SLIP_*_DEG`). The Magic Formula curve exists for the baseline tire only.
+- Do **not** add invented physics back (size factors, width scaling, knob factors, A = Fz/p patches): the old surrogate disagreed with the paper (e.g. it gave a 16 cm² patch where the paper measured 34.5 cm²). If the paper has no data for an option, the option should not exist.
+- Fitted curves (`curves`), tire outlines (`PROFILES`), static stiffness (`STATIC_STIFFNESS`, Fig. 8) and the knob model (`KNOB_MODEL`, Fig. 14/18) are digitized or printed paper data, not our physics; the knob model covers only the 29×2.3″ knobby on 25 mm. Lateral/radial stiffness is Fig. 8 (there is no Fig. 19).
+- Test friction was non-skid tape on a small treadmill: say "relative comparison", never "grip on the trail".
