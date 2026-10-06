@@ -253,16 +253,19 @@ html.w98 *{border-radius:0!important;transition:none!important;text-shadow:none!
 
 /* ---- GLOBAL ---------------------------------------------------------------- */
 html.w98, html.w98 body{height:100%;}
-html.w98 body{display:block;overflow:hidden;background:var(--w-desktop)!important;color:var(--w-text);
+html.w98 body{display:block;overflow:hidden;background:var(--w-face)!important;   /* no teal: the window is maximized, the desktop never shows */
+  color:var(--w-text);
   font:var(--w-fs)/1.3 var(--w-font);-webkit-font-smoothing:none;-moz-osx-font-smoothing:grayscale;font-smooth:never;}
 html.w98 button, html.w98 input, html.w98 select{font:inherit;color:var(--w-text);}
 html.w98 a{color:#0000ee;}
 html.w98 :focus-visible{outline:1px dotted #000;outline-offset:-4px;}
 
 /* ---- DESKTOP + WINDOW ------------------------------------------------------ */
-html.w98 .desktop{display:block;position:absolute;inset:0 0 28px 0;padding:10px;}
+/* MAXIMIZED: the window fills the screen above the taskbar, edge to edge. --w-desktop (teal) is kept in the palettes
+   for a future non-maximized / desktop-icons view but is not painted. */
+html.w98 .desktop{display:block;position:absolute;inset:0 0 28px 0;padding:0;}
 html.w98 .window{height:100%;display:flex;flex-direction:column;background:var(--w-face);
-  box-shadow:var(--w-window),2px 2px 0 rgba(0,0,0,.55);padding:3px;}
+  box-shadow:none;padding:0;}   /* a maximized window's frame is off-screen: no outer bevel or drop shadow */
 html.w98 .titlebar{display:flex;align-items:center;gap:4px;height:20px;padding:2px 2px 2px 3px;flex-shrink:0;
   background:linear-gradient(90deg,var(--w-title-a),var(--w-title-b));color:#fff;}
 html.w98 .tb-icon{width:16px;height:16px;flex-shrink:0;}
@@ -440,7 +443,7 @@ html.w98 .sb::-webkit-scrollbar-thumb{background:var(--w-face);border-radius:0;}
 @media (max-width:900px){
   html.w98 body{overflow:auto;font-size:var(--w-fs);}
   html.w98, html.w98 body{height:auto;min-height:100%;}
-  html.w98 .desktop{position:static;padding:4px 4px 34px;}
+  html.w98 .desktop{position:static;padding:0;}
   html.w98 .window{height:auto;}
   html.w98 .w-body{display:block;}
   html.w98 .layout{display:block;padding:0;}
@@ -496,7 +499,7 @@ html.w98.w98-grey :is(.hdr,.topbar,.preset-strip,.cmp-summary,.sb,.main,.panel,.
   html.w98 #camberWheel{width:34px;height:34px;}
   html.w98 .taskbar{height:44px;}
   html.w98 .start,html.w98 .task-win{height:36px;}
-  html.w98 .desktop{padding-bottom:52px;}
+  html.w98 .desktop{bottom:44px;}   /* the touch taskbar is taller; the window stops above it */
   html.w98 .sb-cell{padding:5px 8px;}
 }
 
@@ -562,7 +565,7 @@ input[type=range]{touch-action:pan-y;}   /* horizontal drag = slider, vertical d
 
   /* taskbar is decoration: on phones it only costs 40px of screen */
   html.w98 .taskbar{display:none;}
-  html.w98 .desktop{padding-bottom:calc(4px + env(safe-area-inset-bottom));}
+  html.w98 .desktop{padding-bottom:env(safe-area-inset-bottom);}
   html.w98 .livebar{background:var(--w-face);border:0;box-shadow:inset 0 -1px var(--w-shadow),inset 0 -2px var(--w-hilite);font:var(--w-fs) var(--w-font);color:var(--w-text);}
   html.w98 .lb-l{color:var(--w-text);}
   html.w98 .lb-item{padding:2px 6px;background:var(--w-field);box-shadow:var(--w-sunken);}
