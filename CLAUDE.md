@@ -88,13 +88,12 @@ they did before it. Mind the specificity trap in the standard: the default theme
 
 ## Model integrity
 
-Source paper: `applsci-10-03156-v2.pdf` (Dressel & Sadauckas 2020, in this repo). Read it before making any claim about what "the paper" says.
+The tool **has no physics model of its own.** It shows the paper's numbers (`applsci-10-03156-v2.pdf`, in the repo) and nothing else. Read the PDF before making any claim about what "the paper says".
 
-What the paper actually contains (checked against the PDF):
-- Tires: 29×2.3", 29×2.5", 29×3.0", 27.5×2.8", 26×4.0" (Table 1). Fixed normal load **418 N**; rim **25 mm** inner width (22 mm briefly); pressures 10–50 psi (full sweep on the 29×2.3" only, two levels on the others).
-- Pacejka Motorcycle Magic Formula fitted to lateral force (vs slip and vs camber) and to self-aligning moment (vs slip). FastBike's polynomial is fitted to the **twisting torque due to camber**: `M_ZTW(φ) = m_r·φ·N·(1 + t_w·φ²)` (Eq. 5).
-- Fitted curves and stiffness trends; **no table of coefficients**, no width-scaling law, no wheel-size or knob-level factors.
-
-Not found anywhere in the paper's text (so their source is unverified): `PACEJKA_COEFF`, the wheel-size factors (`WHEEL_SIZES.sf`), the linear width scaling in `sizeFactor`, the knob-level factors (`KNB`), the rim-width rules of thumb, and `fbMz` (pneumatic trail × Fy plus a slip-angle polynomial, which is not Eq. 5). The comment in `index.html` saying the coefficients "ARE the paper" is **not supported by the paper's text** — their provenance is unverified. Do not describe outputs as measured or "the paper's" results, and do not change the constants to improve a chart. If the UI labels "FastBike Mz" / "FastBike Poly Coefficients" are kept, they refer to this tool's own formulation.
-
-Limits: the width slider is 1.9–2.6" while the paper's widths are 2.3–4.0" on specific wheel sizes; loads other than 418 N, rim widths other than 25/22 mm, and the 32" size are the tool's extrapolation and must be flagged as such.
+- All data lives in the `PAPER DATA` block of `index.html` (`CONFIGS`). Every value carries a tier — **printed** (typed in the paper: Fig. 3 baseline coefficients, Fig. 5 patch sizes), **read** (digitized from Fig. 16/17, ±3–5 %), **estimated** (`t_w` of non-baseline tires, from Fig. 6d/12d), **assumed** (reused outside the condition measured). The UI states the tier next to the numbers; keep it honest.
+- Method, calibrations and scripts: `scripts/paper-data/`. To correct a value, edit the table there, re-run `gen_configs.py`, paste the block, and re-check it against the printed numbers.
+- What the paper tested (offer nothing else): 29×2.3″ knobby & bald, 29×2.5″ file-tread & bald (25 mm rim; 22 mm for the knobby/file-tread at 10 and 25 psi), 29×3.0″ knobby (45 mm), 27.5×2.8″ knobby (38 mm), 26×4.0″ knobby (86 mm). One normal load, **418 N**. Nominal pressures 25 / 20 / 20 / 15 psi; the 29×2.3″ was swept 10–50 psi, the others measured at two pressures.
+- The paper's FastBike equation is `M_ZTW(φ)=m_r·φ·N·(1+t_w·φ²)` in **camber** (Eq. 5). Pacejka's Magic Formula is fitted to lateral force (slip and camber) and self-aligning moment (slip).
+- Slip was measured only to about ±2° (±1° on the 26×4″): the peak and curvature are not identified. Draw only the straight-line stiffness inside the measured range (and only as far as it agrees with the fitted curve: see `LINEAR_SLIP_*_DEG`). The Magic Formula curve exists for the baseline tire only.
+- Do **not** add invented physics back (size factors, width scaling, knob factors, A = Fz/p patches): the old surrogate disagreed with the paper (e.g. it gave a 16 cm² patch where the paper measured 34.5 cm²). If the paper has no data for an option, the option should not exist.
+- Test friction was non-skid tape on a small treadmill: say "relative comparison", never "grip on the trail".
