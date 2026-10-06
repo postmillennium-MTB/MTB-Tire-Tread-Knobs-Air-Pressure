@@ -79,6 +79,8 @@ Enforced by the script: the table above. **Still the author's job** — the scri
 
 ## Color schemes
 
+Win98 (grey) has a stone texture: ONE textured surface (`.window`), every panel above it transparent so there are no seams, buttons/fields/bevels flat. The tile (`--w-tex`, 320px) is cut from the photo `image.png` by `scripts/make-stone-tile.py` (a photo is made seamless there with a two-pass cross-fade; `--procedural` makes a generated stone instead). Keep `SIZE` equal to the CSS `background-size` and `MEAN_GREY` equal to `--w-face`; `MIN_LEVEL` keeps dark text above 4.5:1. The tile is embedded as a data URI so the tool stays one file — `image.png` is only the source and is not loaded at runtime.
+
 `THEMES` registry in the script; the Theme button cycles `THEME_ORDER`
 (`win98`, `win98g`, `contrast`). Win00 (`trail`) and Frost (`frost`) stay defined but are out of
 the cycle. The Win98 look is scoped under `html.w98`; the dark schemes must keep rendering as

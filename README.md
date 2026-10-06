@@ -11,7 +11,7 @@ The whole tool is one file: `index.html`.
 The **Theme** button cycles through three schemes, in this order:
 
 1. **Win98 (light)** — default. Classic `#c0c0c0` window on a teal desktop.
-2. **Win98 (grey)** — the same layout, darker, on a seamless stone-texture window. The texture is a generated 384px tile embedded in the CSS (`--w-tex`); `python3 scripts/make-stone-tile.py` regenerates it (change the constants at the top for a different stone) and prints the CSS to paste.
+2. **Win98 (grey)** — the same layout, darker, on a seamless stone-texture window. The texture is a 320px seamless tile cut from `image.png` and embedded in the CSS (`--w-tex`), so `image.png` is not loaded at runtime. `python3 scripts/make-stone-tile.py` regenerates it (crop and contrast constants at the top) and prints the CSS value to paste.
 3. **Contrast** — high-contrast dark scheme (yellow on near-black).
 
 Two more schemes are kept in the file but are **not in the cycle** for now:
