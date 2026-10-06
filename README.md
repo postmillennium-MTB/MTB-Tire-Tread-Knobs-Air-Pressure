@@ -76,6 +76,12 @@ Every scheme is one entry in the `THEMES` registry in the script. The Win98 look
 - **Slip and camber were swept separately,** never together, and the curves are drawn symmetric about zero (the paper's fits carry small offsets it does not report).
 - **Overlapping markers** in the paper's plots limit the accuracy of a few points (mostly 10 psi and the bald / file-tread tires).
 
+## The paper in one paragraph (for possible future use)
+
+*A plain-language summary written for this project from the paper's results; the authors' own conclusion is Section 4 of the paper.*
+
+Dressel and Sadauckas measured five mountain bike tire sizes — 29×2.3″, 29×2.5″, 27.5×2.8″, 29×3.0″ and 26×4.0″, the 29″ tires also with their tread sanded off — at one 418 N load, each on a rim and at a pressure typical of its use, and fitted Pacejka's Magic Formula and FastBike's twisting-torque polynomial to the forces and moments. Width changed behavior most: the 26×4.0″ fat bike had nearly double the cornering stiffness of the 29×2.3″ and by far the largest twisting torque, consistent with the heavy "autosteer" feel riders report. Yet every knobby tire's contact patch was mostly air, 70–81 % void and only 34–58 cm². Less-treaded tires were stiffer than knobby ones above about 20 psi, and treating knobs as springs in parallel on a carcass spring in series predicted a knobby tire's lateral stiffness within 8 %. Pressure mattered more than rim width: raising it from 10 to 50 psi more than halved the contact patch and cut camber and twisting-torque stiffness steeply, mostly below 30 psi, while moving from a 25 mm to a 22 mm rim changed little. The data suit relative comparison, not absolute grip: the treadmill coated in non-skid tape limited slip to about ±2° (±1° for the fat bike), so only each curve's slope near zero is reliable.
+
 ## Credits
 
 - Data and models: Dressel & Sadauckas (2020), CC BY 4.0 (MDPI).
