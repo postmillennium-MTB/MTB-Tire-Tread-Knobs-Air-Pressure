@@ -21,7 +21,7 @@ Mobile is not a judgment call per app. Every change that touches layout, CSS, ma
 runs the script below and passes **before it is pushed**.
 
 ```
-node scripts/mobile-check.mjs index.html --cycle '#themeBtn' --cycles 3
+node scripts/mobile-check.mjs index.html --cycle '#themeBtn' --cycles 2
 ```
 
 It loads the page at 360×740, 390×844, 430×932 and 844×390 (landscape) with touch emulation,
@@ -40,7 +40,7 @@ Needs Playwright installed **globally** (`npm i -g playwright`) — the repo has
 Offline sandboxes: set `CHARTJS_LOCAL=/path/to/chart.umd.js` and `CHROMIUM_PATH=/path/to/chromium`.
 Screenshots land in `mobile-check-out/` (one per viewport × scheme) — look at them; the script
 cannot judge whether a layout is good, only whether it is broken.
-A new color scheme is covered automatically by raising `--cycles`.
+A new color scheme is covered automatically by raising `--cycles` (one cycle per scheme in `THEME_ORDER`).
 
 ### Rules the check enforces (and the ones it cannot)
 
@@ -79,12 +79,10 @@ Enforced by the script: the table above. **Still the author's job** — the scri
 
 ## Color schemes
 
-Win98 (grey) has a stone texture: ONE textured surface (`.window`), every panel above it transparent so there are no seams, buttons/fields/bevels flat. The tile (`--w-tex`, 320px) is cut from a stone photo (`image.png`, deletable — restore with `git show 0d923a4:image.png > image.png`) by `scripts/make-stone-tile.py` (a photo is made seamless there with a two-pass cross-fade; `--procedural` makes a generated stone instead). Keep `SIZE` equal to the CSS `background-size` and `MEAN_GREY` equal to `--w-face`; `MIN_LEVEL` keeps dark text above 4.5:1. The tile is embedded as a data URI so the tool stays one file — The photo is only a source and is never loaded at runtime.
-
 `THEMES` registry in the script; the Theme button cycles `THEME_ORDER`
-(`win98`, `win98g`, `contrast`). Win00 (`trail`) and Frost (`frost`) stay defined but are out of
+(`win98`, `contrast`). Win00 (`trail`) and Frost (`frost`) stay defined but are out of
 the cycle. The Win98 look is scoped under `html.w98`; the dark schemes must keep rendering as
-they did before it. Mind the specificity trap in the standard: the default theme's CSS block goes first. See README for how to re-enable a scheme.
+they did before it. Mind the specificity trap in the standard: the default theme's CSS block goes first. See README for how to re-enable a scheme. The darker stone-textured "Win98 (grey)" was removed (git history: commit `2e03c03`).
 
 ## Model integrity
 

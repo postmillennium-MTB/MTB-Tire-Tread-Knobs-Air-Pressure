@@ -39,11 +39,10 @@ The paper fits the Magic Formula to lateral force (versus slip and versus camber
 
 ## Color schemes
 
-The **Theme** button cycles through three schemes, in this order:
+The **Theme** button cycles through two schemes, in this order:
 
-1. **Win98 (light)** — default. Classic `#c0c0c0` window on a teal desktop.
-2. **Win98 (grey)** — the same layout, darker, on a seamless stone-texture window. The texture is a 320px seamless tile cut from a stone photo and embedded in the CSS (`--w-tex`). The tool never loads the photo, so `image.png` can be deleted from the repo (restore it for regenerating with `git show 0d923a4:image.png > image.png`). `python3 scripts/make-stone-tile.py` regenerates the tile and prints the CSS value to paste.
-3. **Contrast** — high-contrast dark scheme (yellow on near-black).
+1. **Win98 (light)** — default. Classic `#c0c0c0` maximized window with a taskbar.
+2. **Contrast** — high-contrast dark scheme (yellow on near-black).
 
 Two more schemes are kept in the file but are **not in the cycle** for now:
 
@@ -53,8 +52,10 @@ Two more schemes are kept in the file but are **not in the cycle** for now:
 To switch them back on, find `THEME_ORDER` in the script and add their ids:
 
 ```js
-const THEME_ORDER = ['win98','win98g','contrast','trail','frost'];
+const THEME_ORDER = ['win98','contrast','trail','frost'];
 ```
+
+(A darker "Win98 (grey)" scheme with a stone texture existed briefly and was removed; it is in the git history, e.g. commit `2e03c03`, along with `scripts/make-stone-tile.py` and the source photo `image.png`.)
 
 Every scheme is one entry in the `THEMES` registry in the script. The Win98 look (window, title bar, taskbar) is scoped to the `html.w98` class, so the dark schemes render as they did before.
 
@@ -66,7 +67,7 @@ Every scheme is one entry in the `THEMES` registry in the script. The Win98 look
 - Touch devices (`pointer: coarse`) get 44px buttons, bigger checkboxes and type, in every color scheme. Mouse users get the original sizing.
 - Pinch-zoom is allowed.
 
-`scripts/mobile-check.mjs` is the automated mobile check (see `CLAUDE.md`): `node scripts/mobile-check.mjs index.html --cycle '#themeBtn' --cycles 3`.
+`scripts/mobile-check.mjs` is the automated mobile check (see `CLAUDE.md`): `node scripts/mobile-check.mjs index.html --cycle '#themeBtn' --cycles 2`.
 
 ## Known limits (from the paper itself)
 
