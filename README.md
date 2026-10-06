@@ -4,6 +4,21 @@ Dressel, A.; Sadauckas, J
 Interactive MTB tire simulator (Pacejka Magic Formula + FastBike twisting-torque polynomial) based on:
 Dressel & Sadauckas, *Characterization and Modelling of Various Sized Mountain Bike Tires and the Effects of Tire Tread Knobs and Inflation Pressure*, Appl. Sci. 2020, 10, 3156. https://doi.org/10.3390/app10093156
 
+## Background: the two tire models
+
+**Pacejka Magic Formula.** An empirical curve fit for the force a tire generates, developed by Hans B. Pacejka (Delft University of Technology) and the standard starting point for tire modelling in vehicle dynamics. It describes lateral force as a smooth, saturating function of slip angle using four fitted coefficients: B (stiffness), C (shape), D (peak) and E (curvature). More on its author: [Hans B. Pacejka (Wikipedia)](https://en.wikipedia.org/wiki/Hans_B._Pacejka).
+
+**FastBike twisting-torque polynomial.** FastBike is multibody simulation software for motorcycles and bicycles from Dynamotion ([FastBike software](https://www.dynamotion.it/en/software/fastbike-software/)). Its tire model describes the *twisting torque* — the moment about the tire's vertical axis, which is what produces self-aligning and steering effort — with a polynomial. The Magic Formula covers the forces; the polynomial covers this torque. [Dressel & Sadauckas (2020)](https://doi.org/10.3390/app10093156) use the two together for mountain bike tires.
+
+In this tool (functions `pFy` and `fbMz` in `index.html`):
+
+```
+Fy = D·sin( C·atan( B·α' − E·( B·α' − atan(B·α') ) ) )      α' = α + camber shift
+Mz = −t(α)·Fy + c0 + c1·α + c2·α²                           t(α) = t0·cos( Ct·atan(Bt·α) )
+```
+
+The first term of `Mz` is the pneumatic trail acting on the lateral force; the polynomial terms are the residual twisting torque. Coefficients are the fitted constants in `PACEJKA_COEFF` and are the paper's, not tuned for display.
+
 The whole tool is one file: `index.html`.
 
 ## Color schemes
