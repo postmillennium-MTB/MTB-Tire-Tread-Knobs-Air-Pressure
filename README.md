@@ -11,7 +11,8 @@ The whole tool is one file: `index.html`.
 Every option is a tire, rim and pressure the paper actually tested — nothing is interpolated between tires or scaled by a made-up factor.
 
 - **Tires:** 29″ × 2.3″ (knobby, bald), 29″ × 2.5″ (file-tread, bald), 29″ × 3.0″ (knobby), 27.5″ × 2.8″ (knobby), 26″ × 4.0″ (knobby), on the rims and at the pressures the paper used. Pick a wheel size and only the widths tested on it appear.
-- **Charts:** lateral force vs slip, lateral force vs camber, self-aligning moment vs slip, twisting torque vs camber (the FastBike polynomial), the contact-patch ellipse drawn to scale, and any measured quantity vs inflation pressure.
+- **Charts:** lateral force vs slip, lateral force vs camber, self-aligning moment vs slip, twisting torque vs camber (the FastBike polynomial), the contact-patch ellipse drawn to scale, and any measured quantity vs inflation pressure. For the other tires the paper's own fitted curves (Fig. 6 and 12) are digitized and overlaid at the one pressure each was plotted for.
+- **Extra panels:** tire cross-section outlines traced from Fig. 4 and 10 (one shared scale, crowns aligned); the knobs-as-springs model (Fig. 14, 18; 29×2.3″ knobby on a 25 mm rim only); static lateral and radial stiffness (Fig. 8, printed values).
 - **Solid vs dashed lines:** solid is the range the authors actually measured; dashed is extrapolation, the paper's own convention.
 
 ### Where the numbers come from
@@ -19,10 +20,13 @@ Every option is a tire, rim and pressure the paper actually tested — nothing i
 |---|---|
 | **printed** | typed in the paper itself (Fig. 3 coefficients of the 29″ × 2.3″ knobby at 25 psi; Fig. 5 contact-patch sizes at nominal pressure). Exact. |
 | **read** | digitized from the paper's plots (Fig. 16 patch size, Fig. 17 stiffness vs pressure), then checked against the printed values (agreement about 1–3 %). Treat as ±3–5 %. |
-| **estimated** | the FastBike `t_w` of tires other than the baseline, back-solved from the curve shapes in Fig. 6d / 12d (about ±0.3). |
+| **estimated** | the FastBike `t_w` of tires other than the baseline, least-squares fitted to the twisting-torque curves in Fig. 6d / 12d (about ±0.3). |
+| **curves / outlines** | fitted curves and tire outlines digitized from the figures (about ±3 % of full scale; outlines ±1 mm). |
 | **assumed** | a value reused outside the condition it was measured in. The tool says so next to the number. |
 
-The method, calibration numbers and scripts are in `scripts/paper-data/`.
+The method, calibration numbers and scripts are in `scripts/paper-data/` (new tables, curve and outline tracing in `scripts/paper-data/extra/`).
+
+**Paper inconsistency:** Fig. 4 labels the 27.5×2.8″ rim `584-35`, while Fig. 6 and 17 use 38 mm; the tool follows 38 mm. Fig. 8b prints 60,365 N/m for two different radial bars; kept as printed.
 
 ## Background: the two tire models
 
