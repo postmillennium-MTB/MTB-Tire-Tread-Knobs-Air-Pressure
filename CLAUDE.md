@@ -84,8 +84,7 @@ Win98 (grey) has a stone texture: ONE textured surface (`.window`), every panel 
 `THEMES` registry in the script; the Theme button cycles `THEME_ORDER`
 (`win98`, `win98g`, `contrast`). Win00 (`trail`) and Frost (`frost`) stay defined but are out of
 the cycle. The Win98 look is scoped under `html.w98`; the dark schemes must keep rendering as
-they did before it. Resolve the specificity trap documented in the standard: the default theme's
-block goes first. See README for how to re-enable a scheme.
+they did before it. Mind the specificity trap in the standard: the default theme's CSS block goes first. See README for how to re-enable a scheme.
 
 ## Model integrity
 
