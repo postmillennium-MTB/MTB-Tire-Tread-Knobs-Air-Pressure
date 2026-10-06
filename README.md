@@ -11,7 +11,7 @@ The whole tool is one file: `index.html`.
 The **Theme** button cycles through three schemes, in this order:
 
 1. **Win98 (light)** — default. Classic `#c0c0c0` window on a teal desktop.
-2. **Win98 (grey)** — the same layout with every shade one step darker.
+2. **Win98 (grey)** — the same layout, darker, on a seamless stone-texture window. The texture is a generated 384px tile embedded in the CSS (`--w-tex`); `python3 scripts/make-stone-tile.py` regenerates it (change the constants at the top for a different stone) and prints the CSS to paste.
 3. **Contrast** — high-contrast dark scheme (yellow on near-black).
 
 Two more schemes are kept in the file but are **not in the cycle** for now:
@@ -27,9 +27,15 @@ const THEME_ORDER = ['win98','win98g','contrast','trail','frost'];
 
 Every scheme is one entry in the `THEMES` registry in the script. The Win98 look (window, title bar, taskbar) is scoped to the `html.w98` class, so the dark schemes render exactly as they did before.
 
-## Touch devices
+## Phones and touch devices
 
-Phones and tablets (`pointer: coarse`) get larger controls in the Win98 schemes: 44px buttons and sliders, bigger checkboxes and type. Mouse users get the original 1998-sized controls.
+- A sticky **result bar** (peak Fy, contact area, μy and a Charts/Controls jump button) stays at the top while you drag sliders.
+- The footprint chart comes first; the coefficient, derived-output and equation groups start collapsed (tap to open).
+- Header, menu bar and taskbar are trimmed to save screen height.
+- Touch devices (`pointer: coarse`) get 44px buttons and sliders, bigger checkboxes and type, in every color scheme. Mouse users get the original sizing.
+- Pinch-zoom is allowed.
+
+`scripts/mobile-check.mjs` is the automated mobile check (see `CLAUDE.md`): `node scripts/mobile-check.mjs index.html --cycle '#themeBtn' --cycles 3`.
 
 ## Known limits
 
