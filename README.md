@@ -4,29 +4,28 @@ Dressel, A.; Sadauckas, J
 Interactive MTB tire simulator (Pacejka Magic Formula + FastBike twisting-torque polynomial) based on:
 Dressel & Sadauckas, *Characterization and Modelling of Various Sized Mountain Bike Tires and the Effects of Tire Tread Knobs and Inflation Pressure*, Appl. Sci. 2020, 10, 3156. https://doi.org/10.3390/app10093156
 
-## Files
+The whole tool is one file: `index.html`.
 
-| File | What it is |
-|---|---|
-| `index.html` | The live tool (dark theme). |
-| `win98-mockup.html` | The same tool with a selectable Windows 98 look. Same physics and charts; only the styling differs. |
+## Color schemes
 
-## Color schemes (`win98-mockup.html`)
-
-The **Theme** button cycles through the schemes in this order:
+The **Theme** button cycles through three schemes, in this order:
 
 1. **Win98 (light)** — default. Classic `#c0c0c0` window on a teal desktop.
 2. **Win98 (grey)** — the same layout with every shade one step darker.
-3. **Win00** — the original dark scheme, unchanged (no Win98 window chrome).
+3. **Contrast** — high-contrast dark scheme (yellow on near-black).
 
-**Frost** and **Contrast** (the two other original dark themes) are kept in the file but are not in the cycle for now.
-To switch them back on, find `THEME_ORDER` in the script and add them:
+Two more schemes are kept in the file but are **not in the cycle** for now:
+
+- **Win00** — the original dark scheme (amber on navy-black), the look the tool had before the Win98 schemes. Internal id: `trail`.
+- **Frost** — dark scheme with blue accents.
+
+To switch them back on, find `THEME_ORDER` in the script and add their ids:
 
 ```js
-const THEME_ORDER = ['win98','win98g','trail','frost','contrast'];
+const THEME_ORDER = ['win98','win98g','contrast','trail','frost'];
 ```
 
-(`trail` is the internal id of Win00.) Each scheme is one entry in the `THEMES` registry in the script.
+Every scheme is one entry in the `THEMES` registry in the script. The Win98 look (window, title bar, taskbar) is scoped to the `html.w98` class, so the dark schemes render exactly as they did before.
 
 ## Touch devices
 

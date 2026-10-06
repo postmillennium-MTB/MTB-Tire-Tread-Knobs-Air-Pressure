@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="w98">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -220,9 +220,290 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   .cw{height:260px;}
   .fpw{height:300px;}
 }
+
+
+/* ==== WRAPPER CHROME — only visible under html.w98 ============================
+   Without the class (Win00 scheme) the Win98-only chrome is hidden and the three
+   wrapper divs use display:contents, so the original flex layout of <body> sees
+   the header / toolbar / layout / footer as direct children, exactly as before. */
+.titlebar,.menubar,.statusbar,.taskbar{display:none;}
+.desktop,.window,.w-body{display:contents;}
+/* ==== WINDOWS 98 THEME LAYER ===================================================
+   Appended AFTER the original stylesheet so it wins on equal specificity.
+   Palette lives in --w-* variables; the JS theme only feeds the chart canvases.
+   =============================================================================== */
+html.w98{
+  --w-desktop:#008080; --w-face:#c0c0c0; --w-hilite:#ffffff; --w-light:#dfdfdf;
+  --w-shadow:#808080; --w-dark:#0a0a0a; --w-text:#222222; --w-field:#ffffff;
+  --w-fs:11px; --w-fs-s:10px; --w-fs-m:12px; --w-text-2:#444;
+  --w-title-a:#000080; --w-title-b:#1084d0; --w-tip:#ffffe1;
+  --w-font:"MS Sans Serif","Microsoft Sans Serif",Tahoma,Geneva,sans-serif;
+  --w-mono:"Courier New",Courier,monospace;
+  /* 3D bevels as stacked inset shadows (cheaper and crisper than border-image) */
+  --w-raised:inset -1px -1px var(--w-dark),inset 1px 1px var(--w-hilite),inset -2px -2px var(--w-shadow),inset 2px 2px var(--w-light);
+  --w-pressed:inset -1px -1px var(--w-hilite),inset 1px 1px var(--w-dark),inset -2px -2px var(--w-light),inset 2px 2px var(--w-shadow);
+  --w-sunken:inset -1px -1px var(--w-hilite),inset 1px 1px var(--w-shadow),inset -2px -2px var(--w-light),inset 2px 2px var(--w-dark);
+  --w-window:inset -1px -1px var(--w-dark),inset 1px 1px var(--w-light),inset -2px -2px var(--w-shadow),inset 2px 2px var(--w-hilite);
+  /* original variables re-pointed so any rule I do not override still looks right */
+  --mono:var(--w-mono); --body:var(--w-font);
+}
+html.w98 *{border-radius:0!important;transition:none!important;text-shadow:none!important;}
+
+/* ---- GLOBAL ---------------------------------------------------------------- */
+html.w98, html.w98 body{height:100%;}
+html.w98 body{display:block;overflow:hidden;background:var(--w-desktop)!important;color:var(--w-text);
+  font:var(--w-fs)/1.3 var(--w-font);-webkit-font-smoothing:none;-moz-osx-font-smoothing:grayscale;font-smooth:never;}
+html.w98 button, html.w98 input, html.w98 select{font:inherit;color:var(--w-text);}
+html.w98 a{color:#0000ee;}
+html.w98 :focus-visible{outline:1px dotted #000;outline-offset:-4px;}
+
+/* ---- DESKTOP + WINDOW ------------------------------------------------------ */
+html.w98 .desktop{display:block;position:absolute;inset:0 0 28px 0;padding:10px;}
+html.w98 .window{height:100%;display:flex;flex-direction:column;background:var(--w-face);
+  box-shadow:var(--w-window),2px 2px 0 rgba(0,0,0,.55);padding:3px;}
+html.w98 .titlebar{display:flex;align-items:center;gap:4px;height:20px;padding:2px 2px 2px 3px;flex-shrink:0;
+  background:linear-gradient(90deg,var(--w-title-a),var(--w-title-b));color:#fff;}
+html.w98 .tb-icon{width:16px;height:16px;flex-shrink:0;}
+html.w98 .tb-title{flex:1;font-weight:bold;font-size:var(--w-fs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;}
+html.w98 .tb-ctl{display:flex;gap:2px;}
+html.w98 .tb-b{position:relative;width:16px;height:14px;background:var(--w-face);box-shadow:var(--w-raised);display:block;}
+html.w98 .tb-b.tb-x{margin-left:2px;}
+html.w98 .tb-b i{position:absolute;display:block;background:#000;}
+html.w98 .g-min{left:4px;bottom:3px;width:6px;height:2px;}
+html.w98 .g-max{left:3px;top:2px;width:8px;height:8px;background:none!important;border:1px solid #000;border-top-width:2px;}
+html.w98 .g-x{left:3px;top:3px;width:8px;height:8px;background:none!important;
+  background-image:linear-gradient(45deg,transparent 42%,#000 42%,#000 58%,transparent 58%),linear-gradient(-45deg,transparent 42%,#000 42%,#000 58%,transparent 58%)!important;}
+html.w98 .menubar{display:flex;gap:0;padding:2px 0;flex-shrink:0;}
+html.w98 .menubar span{padding:2px 7px;}
+html.w98 .w-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:3px;padding-top:2px;border-top:1px solid var(--w-shadow);box-shadow:inset 0 1px var(--w-hilite);}
+html.w98 .statusbar{display:flex;gap:2px;margin-top:3px;flex-shrink:0;}
+html.w98 .sb-cell{padding:2px 6px;box-shadow:inset -1px -1px var(--w-hilite),inset 1px 1px var(--w-shadow);white-space:nowrap;}
+html.w98 .sb-grow{flex:1;}
+
+/* ---- TASKBAR --------------------------------------------------------------- */
+html.w98 .taskbar{position:fixed;left:0;right:0;bottom:0;height:28px;display:flex;align-items:center;gap:4px;padding:2px;
+  background:var(--w-face);box-shadow:inset 0 1px var(--w-light),inset 0 2px var(--w-hilite);z-index:50;}
+html.w98 .start{display:flex;align-items:center;gap:3px;height:22px;padding:0 6px;box-shadow:var(--w-raised);}
+html.w98 .start svg, html.w98 .task-win svg{width:16px;height:16px;}
+html.w98 .task-sep{width:2px;height:20px;box-shadow:inset 1px 0 var(--w-shadow),inset -1px 0 var(--w-hilite);}
+html.w98 .task-win{display:flex;align-items:center;gap:4px;height:22px;padding:0 8px;min-width:0;max-width:200px;overflow:hidden;white-space:nowrap;font-weight:bold;
+  box-shadow:var(--w-pressed);
+  background-image:repeating-conic-gradient(var(--w-face) 0 25%,var(--w-hilite) 0 50%);background-size:2px 2px;}
+html.w98 .tray{margin-left:auto;padding:3px 10px;box-shadow:inset 1px 1px var(--w-shadow),inset -1px -1px var(--w-hilite);}
+
+/* ---- HEADER (about-box style) --------------------------------------------- */
+html.w98 .hdr{background:var(--w-face);border:0;padding:4px 6px;gap:8px;}
+html.w98 .hdr-wheel{width:30px;height:30px;animation:none;}
+html.w98 .hdr-wheel *{stroke:#000!important;fill:none;}
+html.w98 .hdr-wheel circle:nth-of-type(3){fill:#000!important;}
+html.w98 .hdr-main{font-size:var(--w-fs-m);font-weight:bold;letter-spacing:0;text-transform:none;}
+html.w98 .hdr-sub{font:var(--w-fs) var(--w-font);color:var(--w-text);}
+html.w98 .hdr-authors, html.w98 .hdr-tag{font:var(--w-fs) var(--w-font);color:var(--w-text);background:var(--w-face);border:0;padding:2px 6px;
+  box-shadow:inset -1px -1px var(--w-hilite),inset 1px 1px var(--w-shadow);letter-spacing:0;}
+
+/* ---- TOOLBAR --------------------------------------------------------------- */
+html.w98 .topbar{background:var(--w-face);border:0;padding:3px 6px;gap:6px 14px;
+  box-shadow:inset 0 1px var(--w-shadow),inset 0 2px var(--w-hilite);}
+html.w98 .tb-hint{font:var(--w-fs) var(--w-font);color:var(--w-text);}
+
+/* push buttons — shared by every clickable control */
+html.w98 .tb-btn, html.w98 .sz-btn, html.w98 .kn-btn, html.w98 .tab, html.w98 .preset-chip, html.w98 .nudge-close{
+  background:var(--w-face);color:var(--w-text);border:0;box-shadow:var(--w-raised);cursor:default;
+  font:var(--w-fs) var(--w-font);letter-spacing:0;text-transform:none;}
+html.w98 .tb-btn:hover, html.w98 .sz-btn:hover, html.w98 .kn-btn:hover, html.w98 .tab:hover, html.w98 .preset-chip:hover{background:var(--w-face);color:var(--w-text);border:0;}
+html.w98 .tb-btn:active, html.w98 .sz-btn:active, html.w98 .kn-btn:active, html.w98 .tab:active, html.w98 .preset-chip:active, html.w98 .nudge-close:active{box-shadow:var(--w-pressed);}
+html.w98 .tb-btn:active>*, html.w98 .sz-btn:active, html.w98 .kn-btn:active>*, html.w98 .tab:active, html.w98 .preset-chip:active>*, html.w98 .nudge-close:active{position:relative;left:1px;top:1px;}
+html.w98 .tb-btn{padding:4px 12px;min-height:23px;}
+html.w98 .tb-btn b{color:var(--w-text);}
+html.w98 .swatch{background:#000080;box-shadow:none;}
+
+/* toggle state = pressed-in with the classic 2px dither */
+html.w98 .sz-btn.act, html.w98 .kn-btn.act, html.w98 .tab.act, html.w98 .preset-chip.selA, html.w98 .preset-chip.selB{
+  box-shadow:var(--w-pressed);color:var(--w-text);border:0;
+  background:var(--w-face) repeating-conic-gradient(var(--w-face) 0 25%,var(--w-hilite) 0 50%) 0 0/2px 2px;}
+html.w98 .kn-btn.act span.kn-lbl{color:var(--w-text);opacity:1;}
+
+/* checkboxes: real inputs, restyled, so keyboard + screen readers keep working */
+html.w98 .switch{gap:5px;}
+html.w98 .switch input{display:inline-block;appearance:none;-webkit-appearance:none;width:13px;height:13px;margin:0;flex-shrink:0;
+  background:var(--w-field);box-shadow:var(--w-sunken);position:relative;}
+html.w98 .switch input:checked::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid #000;border-width:0 2px 2px 0;transform:rotate(40deg);}
+html.w98 .switch .track{display:none;}
+html.w98 .switch-lbl{font:var(--w-fs) var(--w-font);text-transform:none;letter-spacing:0;color:var(--w-text);}
+
+/* A/B config toggles keep their meaning-colour as a swatch, never colour alone (label stays) */
+html.w98 .tabs{border:0;display:inline-flex;gap:3px;}
+html.w98 .tab{padding:4px 12px 4px 10px;min-height:23px;font-weight:normal;}
+html.w98 .tab::before{content:"";display:inline-block;width:9px;height:9px;margin-right:6px;border:1px solid #000;vertical-align:-1px;}
+html.w98 .tab#tabA::before{background:var(--cmpA);}
+html.w98 .tab#tabB::before{background:var(--cmpB);}
+html.w98 .tab.act, html.w98 .tab#tabA.act, html.w98 .tab#tabB.act{color:var(--w-text);font-weight:bold;}
+html.w98 .tab#tabA.act{background:var(--w-face) repeating-conic-gradient(var(--w-face) 0 25%,var(--w-hilite) 0 50%) 0 0/2px 2px;}
+html.w98 .tab#tabB.act{background:var(--w-face) repeating-conic-gradient(var(--w-face) 0 25%,var(--w-hilite) 0 50%) 0 0/2px 2px;color:var(--w-text);}
+html.w98 .cmp-legend{font:var(--w-fs) var(--w-font);color:var(--w-text);}
+
+/* ---- BANNERS --------------------------------------------------------------- */
+html.w98 .nudge-banner{background:var(--w-tip);color:var(--w-text);border:1px solid #000;margin:2px 4px;padding:3px 6px;font-size:var(--w-fs);}
+html.w98 .nudge-banner b{color:var(--w-text);}
+html.w98 .nudge-close{margin-left:auto;width:16px;height:14px;padding:0;font-size:var(--w-fs);line-height:12px;}
+html.w98 .preset-strip{background:var(--w-face);border:0;padding:4px 6px;gap:6px;}
+html.w98 .preset-lbl{font:bold var(--w-fs) var(--w-font);color:var(--w-text);letter-spacing:0;text-transform:none;}
+html.w98 .preset-chip{padding:3px 10px;min-width:118px;}
+html.w98 .preset-chip .pc-name{font-size:var(--w-fs);font-weight:bold;letter-spacing:0;}
+html.w98 .preset-chip .pc-sub{font-size:var(--w-fs);font-style:normal;color:var(--w-text);}
+html.w98 .preset-chip .pc-slot{top:-6px;right:-6px;width:16px;height:16px;border:1px solid #000;font:bold var(--w-fs) var(--w-font);}
+html.w98 .preset-chip.selA .pc-slot{background:var(--cmpA);color:#fff;}
+html.w98 .preset-chip.selB .pc-slot{background:var(--cmpB);color:#fff;}
+html.w98 .preset-hint{font:var(--w-fs) var(--w-font);color:var(--w-text);}
+html.w98 .cmp-summary{background:var(--w-face);border:0;font:var(--w-fs) var(--w-font);color:var(--w-text);padding:2px 6px;}
+html.w98 .cmp-summary .sA b{color:var(--cmpA);} html.w98 .cmp-summary .sB b{color:var(--cmpB);}
+/* narrative = a read-only sunken text field, the one place the plain-English takeaway lives */
+html.w98 .narrative{background:var(--w-field);color:var(--w-text);border:0;margin:2px 4px;padding:5px 8px;font:var(--w-fs)/1.35 var(--w-font);box-shadow:var(--w-sunken);}
+html.w98 .narrative b{color:#000080;}
+
+/* ---- LAYOUT ---------------------------------------------------------------- */
+html.w98 .layout{grid-template-columns:292px 1fr;gap:4px;padding:2px 4px 0;}
+
+/* sidebar: a scrolling gray pane that hosts the group boxes */
+html.w98 .sb{background:var(--w-face);border:0;padding:10px 4px 6px 2px;gap:16px;}
+
+/* GROUP BOX: etched border, legend sits ON the top line */
+html.w98 .sec{position:relative;gap:6px;padding:12px 8px 8px;margin-top:2px;border:1px solid var(--w-shadow);box-shadow:1px 1px 0 var(--w-hilite),inset 1px 1px 0 var(--w-hilite);}
+html.w98 .sec-h{position:absolute;left:8px;top:-7px;margin:0;padding:0 4px;background:var(--w-face);border:0;
+  font:var(--w-fs) var(--w-font);letter-spacing:0;text-transform:none;color:var(--w-text);gap:8px;}
+html.w98 .ro-tag{font:bold var(--w-fs) var(--w-font);letter-spacing:0;}
+
+html.w98 .ctrl{gap:3px;}
+html.w98 .ctrl-lbl{font:var(--w-fs) var(--w-font);text-transform:none;letter-spacing:0;color:var(--w-text);}
+html.w98 .ctrl-val{font:bold var(--w-fs) var(--w-font);color:var(--w-text);}
+html.w98 .sl-ends, html.w98 .hint{font:var(--w-fs) var(--w-font);color:var(--w-text-2);}
+html.w98 .hint{font-size:var(--w-fs-s);}
+html.w98 .sz-row, html.w98 .kn-row{gap:3px;}
+html.w98 .sz-btn{padding:4px 0;min-height:23px;font-weight:normal;}
+html.w98 .kn-btn{padding:3px 2px;}
+html.w98 .kn-btn span.kn-num{font-size:var(--w-fs);font-weight:bold;}
+html.w98 .kn-btn span.kn-lbl{font-size:var(--w-fs-s);color:var(--w-text);letter-spacing:0;}
+
+/* trackbar sliders */
+html.w98 input[type=range]{-webkit-appearance:none;appearance:none;height:22px;background:transparent;border-radius:0;cursor:default;margin:0;}
+html.w98 input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--w-field);box-shadow:var(--w-sunken);border:0;}
+html.w98 input[type=range]::-moz-range-track{height:4px;background:var(--w-field);box-shadow:var(--w-sunken);border:0;}
+html.w98 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:21px;margin-top:-9px;border:0;border-radius:0;
+  background:var(--w-face);box-shadow:var(--w-raised);}
+html.w98 input[type=range]::-moz-range-thumb{width:11px;height:21px;border:0;border-radius:0;background:var(--w-face);box-shadow:var(--w-raised);}
+html.w98 input[type=range]:active::-webkit-slider-thumb{box-shadow:var(--w-raised);}
+html.w98 #camberWheel *{stroke:#000!important;}
+html.w98 #camberWheel circle:nth-of-type(2){fill:#000!important;}
+
+/* readouts: sunken white fields, like read-only text boxes */
+html.w98 .cg, html.w98 .sg{gap:4px;}
+html.w98 .cb, html.w98 .st{background:var(--w-field);border:0;padding:3px 5px;box-shadow:var(--w-sunken);}
+html.w98 .cb-n, html.w98 .st-l{font:var(--w-fs-s) var(--w-font);letter-spacing:0;text-transform:none;color:var(--w-text-2);}
+html.w98 .cb-v, html.w98 .st-v{font:var(--w-fs-m) var(--w-mono);font-weight:bold;color:#000080;}
+html.w98 .cb-v.g{color:#800000;}
+html.w98 .st-v{color:var(--w-text);}
+html.w98 .fml{background:var(--w-field);border:0;box-shadow:var(--w-sunken);font:var(--w-fs)/1.5 var(--w-mono);color:var(--w-text);padding:5px 7px;}
+html.w98 .fml-t{font:bold var(--w-fs) var(--w-font);letter-spacing:0;text-transform:none;color:var(--w-text);}
+html.w98 .fml-eq{color:#000;} html.w98 .fml-n{font:var(--w-fs-s) var(--w-font);color:var(--w-text-2);}
+
+/* chart grid: each panel is a gray window pane with a sunken white plot well */
+html.w98 .main{background:var(--w-face);gap:4px;padding:0;}
+html.w98 .panel{background:var(--w-face);padding:6px 8px;gap:5px;border:1px solid var(--w-shadow);box-shadow:1px 1px 0 var(--w-hilite),inset 1px 1px 0 var(--w-hilite);}
+html.w98 .pt{font:bold var(--w-fs) var(--w-font);letter-spacing:0;text-transform:none;}
+html.w98 .ps{font:var(--w-fs) var(--w-font);color:var(--w-text-2);}
+html.w98 .plain{font:var(--w-fs)/1.3 var(--w-font);color:var(--w-text);opacity:1;}
+html.w98 .pfig{font:var(--w-fs) var(--w-font);color:var(--w-text);border:0;padding:1px 5px;box-shadow:inset -1px -1px var(--w-hilite),inset 1px 1px var(--w-shadow);}
+html.w98 .cw, html.w98 .fpw{background:var(--w-field);box-shadow:var(--w-sunken);padding:2px;}
+html.w98 .fp-ctrl{padding:4px 2px 0;}
+html.w98 .fp-ctrl-lbl, html.w98 .fp-ctrl-val{font:var(--w-fs) var(--w-font);color:var(--w-text);letter-spacing:0;text-transform:none;}
+html.w98 .fp-delta{font:bold var(--w-fs) var(--w-font);}
+
+/* footer = citation strip in the same flat gray */
+html.w98 .ftr{background:var(--w-face);border:0;font:var(--w-fs) var(--w-font);color:var(--w-text);padding:3px 6px;}
+html.w98 .ftr a{color:#0000ee;} html.w98 .ftr-dot{color:var(--w-text);}
+html.w98 .ph>div:first-child{min-width:0;flex:1;}
+
+/* ---- WIN98 SCROLLBARS ------------------------------------------------------ */
+html.w98 ::-webkit-scrollbar, html.w98::-webkit-scrollbar{width:16px;height:16px;background:var(--w-face) repeating-conic-gradient(var(--w-face) 0 25%,var(--w-hilite) 0 50%) 0 0/2px 2px;}
+html.w98 ::-webkit-scrollbar-thumb, html.w98::-webkit-scrollbar-thumb{background:var(--w-face);box-shadow:var(--w-raised);}
+html.w98 ::-webkit-scrollbar-button:single-button, html.w98::-webkit-scrollbar-button:single-button{display:block;width:16px;height:16px;background-color:var(--w-face);box-shadow:var(--w-raised);background-repeat:no-repeat;background-position:center;}
+html.w98 ::-webkit-scrollbar-button:single-button:vertical:decrement, html.w98::-webkit-scrollbar-button:single-button:vertical:decrement{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M8 6l4 4H4z'/%3E%3C/svg%3E");}
+html.w98 ::-webkit-scrollbar-button:single-button:vertical:increment, html.w98::-webkit-scrollbar-button:single-button:vertical:increment{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M8 10l4-4H4z'/%3E%3C/svg%3E");}
+html.w98 ::-webkit-scrollbar-corner, html.w98::-webkit-scrollbar-corner{background:var(--w-face);}
+html.w98 .sb::-webkit-scrollbar{width:16px;}
+html.w98 .sb::-webkit-scrollbar-thumb{background:var(--w-face);border-radius:0;}
+
+/* ---- NARROW SCREENS (mobile-first rules in the original still stack the layout)
+   Window fills the screen, page scrolls, taskbar stays pinned. -------------- */
+@media (max-width:900px){
+  html.w98 body{overflow:auto;font-size:var(--w-fs);}
+  html.w98, html.w98 body{height:auto;min-height:100%;}
+  html.w98 .desktop{position:static;padding:4px 4px 34px;}
+  html.w98 .window{height:auto;}
+  html.w98 .w-body{display:block;}
+  html.w98 .layout{display:block;padding:0;}
+  html.w98 .sb{overflow:visible;padding:10px 6px;}
+  html.w98 .main{display:block;}
+  html.w98 .main .panel{margin-top:4px;}
+  html.w98 .hdr{flex-wrap:wrap;}
+  html.w98 .tb-title{font-size:var(--w-fs);}
+  html.w98 .statusbar .sb-cell:not(.sb-grow){display:none;}
+  html.w98 .task-win{max-width:150px;}
+  html.w98 input[type=range]{height:22px;}
+  html.w98 input[type=range]::-webkit-slider-thumb{width:11px;height:21px;}
+  html.w98 input[type=range]::-moz-range-thumb{width:11px;height:21px;}
+  html.w98 .cb-v, html.w98 .st-v{font-size:var(--w-fs-m);}
+}
+
+/* ==== WIN98 (GREY) — same bevels, everything one step darker =================
+   Only the palette variables change; every component rule above reads them. */
+html.w98.w98-grey{
+  --w-desktop:#005f5f; --w-face:#adadad; --w-hilite:#e8e8e8; --w-light:#c8c8c8;
+  --w-shadow:#6b6b6b; --w-dark:#000000; --w-field:#dedede; --w-tip:#ecebc4; --w-text-2:#1a1a1a;
+}
+
+/* ==== TOUCH BLOCK — coarse pointers (phones, tablets) ==========================
+   Win98 targets were sized for a mouse. PMR standard: >=40px touch targets, 44px
+   for primary controls. Bevels get chunkier; the look is otherwise unchanged.
+   Must stay LAST so it beats the <=900px rules above. */
+@media (pointer:coarse){
+  html.w98{--w-fs:13px; --w-fs-s:12px; --w-fs-m:14px;}
+  html.w98 .tb-ctl{display:none;}
+  html.w98 .titlebar{height:28px;}
+  html.w98 .tb-btn, html.w98 .tab, html.w98 .preset-chip{min-height:44px;}
+  html.w98 .sz-btn{min-height:44px;}
+  html.w98 .kn-btn{min-height:48px;}
+  html.w98 .nudge-close{width:40px;min-width:40px;height:40px;flex-shrink:0;}
+  html.w98 .switch{min-height:44px;gap:10px;}
+  html.w98 .switch input{width:24px;height:24px;}
+  html.w98 .switch input:checked::after{left:7px;top:1px;width:6px;height:13px;border-width:0 3px 3px 0;}
+  html.w98 input[type=range]{height:44px;}
+  html.w98 input[type=range]::-webkit-slider-runnable-track{height:6px;}
+  html.w98 input[type=range]::-moz-range-track{height:6px;}
+  html.w98 input[type=range]::-webkit-slider-thumb{width:26px;height:42px;margin-top:-18px;}
+  html.w98 input[type=range]::-moz-range-thumb{width:26px;height:42px;}
+  html.w98 #camberWheel{width:34px;height:34px;}
+  html.w98 .taskbar{height:44px;}
+  html.w98 .start,html.w98 .task-win{height:36px;}
+  html.w98 .desktop{padding-bottom:52px;}
+  html.w98 .sb-cell{padding:5px 8px;}
+}
+
 </style>
 </head>
 <body>
+
+<div class="desktop">
+<div class="window" role="application" aria-label="MTB Tire Dynamics Simulator">
+  <div class="titlebar">
+    <svg class="tb-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#fff" stroke="#000"/><circle cx="8" cy="8" r="1.6" fill="#000"/><path d="M8 1.5v4M8 10.5v4M1.5 8h4M10.5 8h4" stroke="#000" stroke-width="1"/></svg>
+    <span class="tb-title">MTB Tire Dynamics Simulator - [Pacejka &amp; FastBike Model]</span>
+    <span class="tb-ctl" aria-hidden="true">
+      <span class="tb-b"><i class="g-min"></i></span><span class="tb-b"><i class="g-max"></i></span><span class="tb-b tb-x"><i class="g-x"></i></span>
+    </span>
+  </div>
+  <div class="menubar" aria-hidden="true"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span><span><u>T</u>ools</span><span><u>H</u>elp</span></div>
+  <div class="w-body">
 
 <!-- HEADER -->
 <header class="hdr">
@@ -485,6 +766,17 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   <a href="https://doi.org/10.3390/app10093156" target="_blank">https://doi.org/10.3390/app10093156</a>
 </footer>
 
+  </div>
+  <div class="statusbar" aria-hidden="true"><span class="sb-cell sb-grow">Ready</span><span class="sb-cell">Pacejka MF + FastBike</span><span class="sb-cell">Appl. Sci. 2020, 10, 3156</span></div>
+</div>
+</div>
+<div class="taskbar" aria-hidden="true">
+  <span class="start"><svg viewBox="0 0 16 16"><path fill="#f00" d="M1 2l6 1v5H1z"/><path fill="#0a0" d="M8 3l7-1v6H8z"/><path fill="#00f" d="M1 9h6v5l-6-1z"/><path fill="#fc0" d="M8 9h7v6l-7-1z"/></svg><b>Start</b></span>
+  <span class="task-sep"></span>
+  <span class="task-win"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#fff" stroke="#000"/><circle cx="8" cy="8" r="1.6" fill="#000"/></svg>MTB Tire Dynamics Simulator</span>
+  <span class="tray"><span id="clock">12:00 PM</span></span>
+</div>
+
 <script>
 /* ═══════════════════════════════════════════════
    COLOR THEMES  (colorblind-safe, Okabe–Ito based)
@@ -492,9 +784,47 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
    hue AND line style (solid vs dashed), so the two
    configs remain separable under any color-vision type.
 ═══════════════════════════════════════════════ */
+/* Type + chart settings shared by both Win98 schemes. Themes that omit these
+   fall back to the original IBM Plex Mono sizing (see the defaults loop below). */
+const WIN98_TYPE = {
+  ui:'w98',                                           // html class applied by applyThemeVars()
+  font:"Tahoma, 'MS Sans Serif', Geneva, sans-serif", // canvas + chart-title font
+  chartFont:"Tahoma, 'MS Sans Serif', Geneva, sans-serif", // Chart.js tick/legend font
+  cvMin:11, tickSize:11, titleSize:11, legendSize:11,  // px — 8–9px Tahoma is unreadable
+  slickGroove:'rgba(0,0,128,.45)', slickSipe:'rgba(0,0,128,.25)', // slick-tread lines, readable on light bg
+};
 const THEMES = {
+  win98: {
+    ...WIN98_TYPE,
+    name:'Win98 (light)',
+    accent:'#000080', sec:'#008080', cmpA:'#d55e00', cmpB:'#0072b2',
+    bg:'#ffffff', border:'#808080', grid:'rgba(128,128,128,.45)', tick:'#222222', txt3:'#808080',
+    psiRamp:['#c9c9c9','#9a9a9a','#6d6d6d','#444444','#1a1a1a'],
+    css:{
+      '--bg':'#008080','--surf1':'#c0c0c0','--surf2':'#c0c0c0','--surf3':'#ffffff',
+      '--border':'#808080','--border2':'#808080',
+      '--accent':'#000080','--accentD':'#c0c0c0','--accentG':'#808080',
+      '--sec':'#008080','--cmpA':'#d55e00','--cmpB':'#0072b2',
+      '--txt':'#222222','--txt2':'#222222','--txt3':'#444444',
+    },
+  },
+  win98g: {
+    ...WIN98_TYPE,
+    ui:'w98 w98-grey',
+    name:'Win98 (grey)',
+    accent:'#000080', sec:'#005f5f', cmpA:'#c24f00', cmpB:'#005f99',
+    bg:'#dedede', border:'#6b6b6b', grid:'rgba(90,90,90,.5)', tick:'#1a1a1a', txt3:'#555555',
+    psiRamp:['#bdbdbd','#8f8f8f','#666666','#3d3d3d','#161616'],
+    css:{
+      '--bg':'#005f5f','--surf1':'#adadad','--surf2':'#adadad','--surf3':'#dedede',
+      '--border':'#6b6b6b','--border2':'#6b6b6b',
+      '--accent':'#000080','--accentD':'#adadad','--accentG':'#6b6b6b',
+      '--sec':'#005f5f','--cmpA':'#c24f00','--cmpB':'#005f99',
+      '--txt':'#1a1a1a','--txt2':'#1a1a1a','--txt3':'#3d3d3d',
+    },
+  },
   trail: {
-    name:'Trail',
+    name:'Win00',  // the original dark scheme, untouched
     accent:'#e69f00', sec:'#56b4e9', cmpA:'#e69f00', cmpB:'#0072b2',
     bg:'#0b0d12', border:'#252c3f', grid:'rgba(37,44,63,.7)', tick:'#7b87a0', txt3:'#3d4a62',
     psiRamp:['#fde3a7','#f6c667','#ec9f2e','#c9781a','#8a4e0c'],
@@ -533,10 +863,29 @@ const THEMES = {
     },
   },
 };
-const THEME_ORDER = ['trail','frost','contrast'];
-let currentTheme = 'trail';
+/* Cycle order of the Theme button; Win98 (light) is the default.
+   'trail' (Win00, the original dark look) and 'frost' stay defined above but are out of
+   the cycle for now — add their ids back here to re-enable them. */
+const THEME_ORDER = ['win98','win98g','contrast'];
+/* Defaults for themes that do not set Win98 type settings = the original look. */
+for (const k in THEMES) {
+  const t = THEMES[k];
+  t.font        ??= "'IBM Plex Mono', monospace";
+  t.cvMin       ??= 0;
+  t.tickSize    ??= 12;     // Chart.js default tick size
+  t.titleSize   ??= 8;
+  t.legendSize  ??= 9;
+  t.slickGroove ??= 'rgba(18,196,232,.35)';
+  t.slickSipe   ??= 'rgba(18,196,232,.2)';
+}
+let currentTheme = 'win98';
 let T = THEMES[currentTheme];
 
+/* Canvas font from a spec like '9px' or 'bold 13px'; honours the theme's minimum size. */
+function cvFont(spec){
+  const m = spec.match(/^(bold )?(\d+)px$/);
+  return (m[1] || '') + Math.max(+m[2], T.cvMin) + 'px ' + T.font;
+}
 function hexToRgba(hex, a){
   const h = hex.replace('#','');
   const f = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
@@ -821,8 +1170,8 @@ const PSI_VALS = [20, 25, 30, 35, 40];
 function axOpt(title){
   return {
     grid:  { color:T.grid },
-    ticks: { color:T.tick, maxTicksLimit:7 },
-    title: { display:true, text:title, color:T.tick, font:{family:"'IBM Plex Mono'",size:8} },
+    ticks: { color:T.tick, maxTicksLimit:7, font:{size:T.tickSize} },
+    title: { display:true, text:title, color:T.tick, font:{family:T.font,size:T.titleSize} },
     border:{ color:T.border },
   };
 }
@@ -831,7 +1180,7 @@ function mkChart(id, datasets, xT, yT){
     type:'line', data:{ datasets },
     options:{
       responsive:true, maintainAspectRatio:false, animation:{duration:220},
-      plugins:{ legend:{ labels:{ font:{size:9}, color:T.tick, boxWidth:10, padding:7 }}},
+      plugins:{ legend:{ labels:{ font:{size:T.legendSize}, color:T.tick, boxWidth:10, padding:7 }}},
       scales:{ x:{...axOpt(xT), type:'linear'}, y:{...axOpt(yT)} },
     },
   });
@@ -1000,13 +1349,13 @@ function rrect(ctx, x, y, w, h, r) {
 function drawTread(ctx, cx, cy, pxW, pxL, x0, y0, cr, kn) {
   if (kn === 0) {
     // Slick: two longitudinal grooves
-    ctx.strokeStyle = 'rgba(18,196,232,.35)'; ctx.lineWidth = Math.max(1, pxW*0.05);
+    ctx.strokeStyle = T.slickGroove; ctx.lineWidth = Math.max(1, pxW*0.05);
     ctx.setLineDash([]);
     [-0.28, 0.28].forEach(ox => {
       ctx.beginPath(); ctx.moveTo(cx+ox*pxW, y0+3); ctx.lineTo(cx+ox*pxW, y0+pxL-3); ctx.stroke();
     });
     // Horizontal sipes
-    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(18,196,232,.2)';
+    ctx.lineWidth = 1; ctx.strokeStyle = T.slickSipe;
     for (let yi = y0+pxL*0.15; yi < y0+pxL*0.88; yi += pxL*0.1) {
       ctx.beginPath(); ctx.moveTo(x0+4,yi); ctx.lineTo(x0+pxW-4,yi); ctx.stroke();
     }
@@ -1111,10 +1460,10 @@ function drawFP(pt, cfg){
   // 10 mm scale bar
   const tenPx = 10 * FIXED_SCALE, bx = 12, by = cH - 18;
   ctx.fillStyle = hexToRgba(T.sec,.7); ctx.fillRect(bx, by, tenPx, 3);
-  ctx.font = '8px IBM Plex Mono'; ctx.textAlign = 'left'; ctx.fillText('10 mm', bx, by-3);
+  ctx.font = cvFont('8px'); ctx.textAlign = 'left'; ctx.fillText('10 mm', bx, by-3);
 
   // dimensions
-  ctx.font = '9px IBM Plex Mono'; ctx.fillStyle = hexToRgba(T.sec,.85); ctx.textAlign = 'center';
+  ctx.font = cvFont('9px'); ctx.fillStyle = hexToRgba(T.sec,.85); ctx.textAlign = 'center';
   const ay = y0 + pxL + 13;
   ctx.beginPath(); ctx.moveTo(x0,ay); ctx.lineTo(x0+pxW,ay); ctx.strokeStyle=hexToRgba(T.sec,.55); ctx.lineWidth=1; ctx.stroke();
   ctx.fillText(pt.width.toFixed(0)+' mm', cx, ay+11);
@@ -1122,8 +1471,8 @@ function drawFP(pt, cfg){
   ctx.beginPath(); ctx.moveTo(ax,y0); ctx.lineTo(ax,y0+pxL); ctx.stroke();
   ctx.save(); ctx.translate(ax+10, cy); ctx.rotate(Math.PI/2); ctx.fillText(pt.length.toFixed(0)+' mm', 0, 0); ctx.restore();
 
-  ctx.fillStyle = hexToRgba(T.accent,.75); ctx.font = '9px IBM Plex Mono'; ctx.fillText(pt.area.toFixed(1)+' cm²', cx, cy+4);
-  ctx.fillStyle = hexToRgba(T.sec,.6); ctx.font = '8px IBM Plex Mono'; ctx.textAlign = 'right';
+  ctx.fillStyle = hexToRgba(T.accent,.75); ctx.font = cvFont('9px'); ctx.fillText(pt.area.toFixed(1)+' cm²', cx, cy+4);
+  ctx.fillStyle = hexToRgba(T.sec,.6); ctx.font = cvFont('8px'); ctx.textAlign = 'right';
   ctx.fillText('Knob L'+cfg.kn+' — '+KNB[cfg.kn].label, cW-8, cH-8);
 }
 
@@ -1173,7 +1522,7 @@ function drawFPCompare(ptA, ptB, overlap){
     rrect(ctx,x0,y0,pxW,pxL,cr); ctx.stroke();
     ctx.setLineDash([]);
     // letter tag at patch center
-    ctx.fillStyle = color; ctx.font = 'bold 13px IBM Plex Mono'; ctx.textAlign='center';
+    ctx.fillStyle = color; ctx.font = cvFont('bold 13px'); ctx.textAlign='center';
     ctx.fillText(tag, cx, cyC - pxL/2 - 5);
   }
 
@@ -1189,10 +1538,10 @@ function drawFPCompare(ptA, ptB, overlap){
   // 10 mm scale bar (uses local scale)
   const tenPx = 10*sc, bx = 12, by = cH-16;
   ctx.fillStyle = hexToRgba(T.sec,.75); ctx.fillRect(bx,by,tenPx,3);
-  ctx.font='8px IBM Plex Mono'; ctx.textAlign='left'; ctx.fillStyle=hexToRgba(T.sec,.75); ctx.fillText('10 mm', bx, by-3);
+  ctx.font=cvFont('8px'); ctx.textAlign='left'; ctx.fillStyle=hexToRgba(T.sec,.75); ctx.fillText('10 mm', bx, by-3);
 
   // legend + readouts (top-left, two lines)
-  ctx.font = '10px IBM Plex Mono'; ctx.textAlign = 'left';
+  ctx.font = cvFont('10px'); ctx.textAlign = 'left';
   ctx.fillStyle = T.cmpA; ctx.fillText('A  '+ptA.width.toFixed(0)+'×'+ptA.length.toFixed(0)+' mm · '+ptA.area.toFixed(1)+' cm²', 12, 15);
   ctx.fillStyle = T.cmpB; ctx.fillText('B  '+ptB.width.toFixed(0)+'×'+ptB.length.toFixed(0)+' mm · '+ptB.area.toFixed(1)+' cm²', 12, 29);
 }
@@ -1488,12 +1837,17 @@ function updateActiveTagUI(){
 /* ═══════════════════════════════════════════════
    THEME APPLICATION
 ═══════════════════════════════════════════════ */
+const CHART_DEFAULT_FONT = Chart.defaults.font.family; // captured once so Win00 gets Chart.js's own default back
 function applyThemeVars(){
   const root = document.documentElement;
   for (const k in T.css) root.style.setProperty(k, T.css[k]);
   document.getElementById('themeName').textContent = T.name;
   Chart.defaults.color = T.tick;
   Chart.defaults.borderColor = T.border;
+  Chart.defaults.font.family = T.chartFont || CHART_DEFAULT_FONT;
+  // html classes: 'w98' turns on the Win98 chrome, 'w98-grey' swaps the palette; none = Win00
+  root.classList.remove('w98', 'w98-grey');
+  (T.ui || '').split(' ').filter(Boolean).forEach(c => root.classList.add(c));
 }
 function applyThemeCharts(){
   [chFy, chMz, chPS].forEach(ch => {
@@ -1505,6 +1859,11 @@ function applyThemeCharts(){
       ch.options.scales[ax].border.color = T.border;
     });
     ch.options.plugins.legend.labels.color = T.tick;
+    ch.options.plugins.legend.labels.font  = { size:T.legendSize };
+    ['x','y'].forEach(ax => {
+      ch.options.scales[ax].ticks.font = { size:T.tickSize };
+      ch.options.scales[ax].title.font = { family:T.font, size:T.titleSize };
+    });
   });
 }
 function cycleTheme(){
@@ -1520,7 +1879,9 @@ function cycleTheme(){
 /* ═══════════════════════════════════════════════
    BOOT + RESIZE
 ═══════════════════════════════════════════════ */
+function tickClock(){ const d=new Date(); document.getElementById('clock').textContent=d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); }
 window.addEventListener('load', () => {
+  tickClock(); setInterval(tickClock, 15000);
   T = THEMES[currentTheme];
   applyThemeVars();
   renderSizeButtons();
