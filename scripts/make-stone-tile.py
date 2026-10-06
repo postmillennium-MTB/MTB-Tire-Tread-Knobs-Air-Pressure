@@ -41,6 +41,9 @@ def tone_map(dev):
     return np.where(d >= 0, LIGHT_LIMIT * np.tanh(d / LIGHT_LIMIT), DARK_LIMIT * np.tanh(d / DARK_LIMIT))
 
 if not args.procedural:
+    import os
+    if not os.path.exists(args.photo):
+        sys.exit(f'{args.photo} not found. Restore it with:  git show 0d923a4:image.png > image.png   (or run with --procedural)')
     src = np.asarray(Image.open(args.photo).convert('L')).astype(float)
     crop = src[CROP_Y:CROP_Y + SIZE, CROP_X:CROP_X + SIZE]
     assert crop.shape == (SIZE, SIZE), f'crop {crop.shape} does not fit inside {src.shape}; adjust CROP_X/CROP_Y/SIZE'

@@ -79,7 +79,7 @@ Enforced by the script: the table above. **Still the author's job** — the scri
 
 ## Color schemes
 
-Win98 (grey) has a stone texture: ONE textured surface (`.window`), every panel above it transparent so there are no seams, buttons/fields/bevels flat. The tile (`--w-tex`, 320px) is cut from the photo `image.png` by `scripts/make-stone-tile.py` (a photo is made seamless there with a two-pass cross-fade; `--procedural` makes a generated stone instead). Keep `SIZE` equal to the CSS `background-size` and `MEAN_GREY` equal to `--w-face`; `MIN_LEVEL` keeps dark text above 4.5:1. The tile is embedded as a data URI so the tool stays one file — `image.png` is only the source and is not loaded at runtime.
+Win98 (grey) has a stone texture: ONE textured surface (`.window`), every panel above it transparent so there are no seams, buttons/fields/bevels flat. The tile (`--w-tex`, 320px) is cut from a stone photo (`image.png`, deletable — restore with `git show 0d923a4:image.png > image.png`) by `scripts/make-stone-tile.py` (a photo is made seamless there with a two-pass cross-fade; `--procedural` makes a generated stone instead). Keep `SIZE` equal to the CSS `background-size` and `MEAN_GREY` equal to `--w-face`; `MIN_LEVEL` keeps dark text above 4.5:1. The tile is embedded as a data URI so the tool stays one file — The photo is only a source and is never loaded at runtime.
 
 `THEMES` registry in the script; the Theme button cycles `THEME_ORDER`
 (`win98`, `win98g`, `contrast`). Win00 (`trail`) and Frost (`frost`) stay defined but are out of
@@ -88,6 +88,13 @@ they did before it. Mind the specificity trap in the standard: the default theme
 
 ## Model integrity
 
-The physics constants (`PACEJKA_COEFF`) *are* the paper (Dressel & Sadauckas 2020). Do not change
-them to "improve" a chart. Nominal width is limited to 1.9–2.6": the model scales grip linearly
-with width, so anything outside the tested range is extrapolation and must be flagged as such.
+Source paper: `applsci-10-03156-v2.pdf` (Dressel & Sadauckas 2020, in this repo). Read it before making any claim about what "the paper" says.
+
+What the paper actually contains (checked against the PDF):
+- Tires: 29×2.3", 29×2.5", 29×3.0", 27.5×2.8", 26×4.0" (Table 1). Fixed normal load **418 N**; rim **25 mm** inner width (22 mm briefly); pressures 10–50 psi (full sweep on the 29×2.3" only, two levels on the others).
+- Pacejka Motorcycle Magic Formula fitted to lateral force (vs slip and vs camber) and to self-aligning moment (vs slip). FastBike's polynomial is fitted to the **twisting torque due to camber**: `M_ZTW(φ) = m_r·φ·N·(1 + t_w·φ²)` (Eq. 5).
+- Fitted curves and stiffness trends; **no table of coefficients**, no width-scaling law, no wheel-size or knob-level factors.
+
+Not found anywhere in the paper's text (so their source is unverified): `PACEJKA_COEFF`, the wheel-size factors (`WHEEL_SIZES.sf`), the linear width scaling in `sizeFactor`, the knob-level factors (`KNB`), the rim-width rules of thumb, and `fbMz` (pneumatic trail × Fy plus a slip-angle polynomial, which is not Eq. 5). The comment in `index.html` saying the coefficients "ARE the paper" is **not supported by the paper's text** — their provenance is unverified. Do not describe outputs as measured or "the paper's" results, and do not change the constants to improve a chart. If the UI labels "FastBike Mz" / "FastBike Poly Coefficients" are kept, they refer to this tool's own formulation.
+
+Limits: the width slider is 1.9–2.6" while the paper's widths are 2.3–4.0" on specific wheel sizes; loads other than 418 N, rim widths other than 25/22 mm, and the 32" size are the tool's extrapolation and must be flagged as such.
