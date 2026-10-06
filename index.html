@@ -138,6 +138,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;}
 .sl-ends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--txt3);}
 .hint{font-family:var(--mono);font-size:8px;color:var(--txt3);}
+#szHint{min-height:1.4em;} /* reserved: the note appears only for extrapolated sizes */
 
 /* coeff grid */
 .cg{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
@@ -593,7 +594,7 @@ html.w98.w98-grey{
       <div class="ctrl">
         <div class="ctrl-lbl"><span>Wheel Diameter</span></div>
         <div class="sz-row" id="szRow"></div>
-        <div class="hint" id="szHint"></div>
+        <div class="hint" id="szHint" aria-live="polite"></div>
       </div>
 
       <div class="ctrl">
@@ -763,7 +764,9 @@ html.w98.w98-grey{
   <span class="ftr-dot">·</span>
   <span><em>Appl. Sci.</em> 2020, 10, 3156.</span>
   <span class="ftr-dot">·</span>
-  <a href="https://doi.org/10.3390/app10093156" target="_blank">https://doi.org/10.3390/app10093156</a>
+  <span>This project is based on the 2020 paper &ldquo;Characterization and Modelling of Various Sized Mountain Bike Tires and the Effects of Tire Tread Knobs and Inflation Pressure&rdquo; by Andrew Dressel, Mechanical Engineer at the University of Wisconsin, and James Sadauckas.</span>
+  <span class="ftr-dot">·</span>
+  <a href="https://doi.org/10.3390/app10093156" target="_blank" rel="noopener">https://doi.org/10.3390/app10093156</a>
 </footer>
 
   </div>
@@ -1670,6 +1673,7 @@ function syncControls(){
   document.getElementById('sG').value   = c.gamma;document.getElementById('vG').textContent   = (c.gamma>=0?'+':'')+c.gamma+'°';
   document.getElementById('camberWheel').style.transform = 'rotate('+c.gamma+'deg)';
   document.querySelectorAll('.sz-btn').forEach(b => b.classList.toggle('act', b.dataset.sz === c.sz));
+  updateSizeHint();
   document.querySelectorAll('.kn-btn').forEach(b => b.classList.toggle('act', +b.dataset.kn === c.kn));
 }
 
@@ -1684,9 +1688,14 @@ function renderSizeButtons(){
   document.getElementById('szRow').innerHTML = WHEEL_SIZES.map(s =>
     `<button class="sz-btn" data-sz="${s.key}" onclick="setSz('${s.key}')"${s.extrapolated ? ' title="Extrapolated beyond paper data"' : ''}>${s.label}</button>`
   ).join('');
-  const extrapolated = WHEEL_SIZES.filter(s => s.extrapolated).map(s => s.label.replace('*',''));
-  document.getElementById('szHint').textContent = extrapolated.length
-    ? `* ${extrapolated.join(', ')} extrapolated beyond tested sizes` : '';
+}
+/* Shows the "extrapolated" note only while the active config is on an extrapolated size
+   (set by the `extrapolated` flag in WHEEL_SIZES, so a new size needs no edit here).
+   Called from syncControls(), which every size change, preset and A/B switch goes through. */
+function updateSizeHint(){
+  const sel = WHEEL_SIZES.find(s => s.key === cur().sz);
+  document.getElementById('szHint').textContent = sel && sel.extrapolated
+    ? `* ${sel.label.replace('*','')} extrapolated beyond tested sizes` : '';
 }
 function renderKnobButtons(){
   document.getElementById('knRow').innerHTML = Object.keys(KNB).map(k => {
