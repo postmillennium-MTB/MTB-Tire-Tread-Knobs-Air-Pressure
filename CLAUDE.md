@@ -96,3 +96,7 @@ The tool **has no physics model of its own.** It shows the paper's numbers (`app
 - Do **not** add invented physics back (size factors, width scaling, knob factors, A = Fz/p patches): the old surrogate disagreed with the paper (e.g. it gave a 16 cm² patch where the paper measured 34.5 cm²). If the paper has no data for an option, the option should not exist.
 - Fitted curves (`curves`), tire outlines (`PROFILES`), static stiffness (`STATIC_STIFFNESS`, Fig. 8) and the knob model (`KNOB_MODEL`, Fig. 14/18) are digitized or printed paper data, not our physics; the knob model covers only the 29×2.3″ knobby on 25 mm. Lateral/radial stiffness is Fig. 8 (there is no Fig. 19).
 - Test friction was non-skid tape on a small treadmill: say "relative comparison", never "grip on the trail".
+
+## License and notice (do not remove)
+
+This repo is licensed under PolyForm Noncommercial 1.0.0 (`LICENSE`). Every edit and rebuild must keep: the `Required Notice:` line at the top of `LICENSE`; the (c) / SPDX comment right after the doctype of each HTML page; and the visible `.pmr-license` footer on each page. Do not remove, reword or hide them. New pages get the same footer. Third-party material keeps its own license: never relicense it, and keep its notices. Jon holds the copyright and decides any license change.

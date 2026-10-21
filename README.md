@@ -91,3 +91,11 @@ Dressel and Sadauckas measured five mountain bike tire sizes — 29×2.3″, 29�
 
 - Data and models: Dressel & Sadauckas (2020), CC BY 4.0 (MDPI).
 - The Windows 98 look was inspired by [98.css](https://jdan.github.io/98.css/) by Jordan Scales. The CSS here is hand-written for this tool; no 98.css code or assets are used.
+
+## License
+
+Copyright (c) 2026 Post Millennium Renaissance (https://www.postmillenniumrenaissance.com).
+
+Released under the [PolyForm Noncommercial License 1.0.0](LICENSE). In short: free to use, copy, modify and share for any noncommercial purpose, including personal use, research, education, and use by charities, environmental-protection organizations and government institutions. Commercial use needs a separate license; ask through postmillenniumrenaissance.com. Copies must keep the `Required Notice:` line in `LICENSE`. The license text controls over this summary.
+
+Facts, figures and quotations taken from third-party studies and sources remain the property of their authors. This license covers only this project's own code, selection and arrangement of material, and original text. Third-party components keep their own licenses.
